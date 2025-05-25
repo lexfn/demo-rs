@@ -20,7 +20,7 @@ use super::{components, materials, MeshHandle};
 pub struct Scene {
     world: World,
     physics: Physics,
-    postprocessor: Entity,
+    postprocess: Entity,
     player: Entity,
     hud: Entity,
     ui: Ui,
@@ -59,7 +59,7 @@ impl Scene {
             .unwrap()
             .color_tex();
         let material = materials::Material::post_process(&state.renderer, &mut assets, pp_src_tex);
-        let postprocessor = world.spawn((
+        let postprocess = world.spawn((
             Transform::default(),
             Camera::new(1.0, components::RENDER_TAG_POST_PROCESS, None),
             Mesh(quad_mesh),
@@ -76,7 +76,7 @@ impl Scene {
             world,
             physics,
             player,
-            postprocessor,
+            postprocess,
             hud,
             box_mesh,
             ui,
@@ -114,7 +114,7 @@ impl Scene {
 
     pub fn render(&mut self, rr: &Renderer) {
         self.render_with_camera(self.player, rr);
-        self.render_with_camera(self.postprocessor, rr);
+        self.render_with_camera(self.postprocess, rr);
     }
 
     // TODO Continue adding other stuff until all scene initialization is done via the file.
