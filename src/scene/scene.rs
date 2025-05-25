@@ -28,6 +28,9 @@ pub struct Scene {
 }
 
 impl Scene {
+    const MESH_KEY_BASIS: &'static str = "basis";
+    const MESH_KEY_QUAD: &'static str = "quad";
+
     pub fn new(state: &State, assets: &mut Assets) -> Self {
         let mut world = World::new();
         let mut physics = Physics::new();
@@ -40,7 +43,10 @@ impl Scene {
             Vec3::new(7.0, 7.0, 7.0),
         );
 
-        let quad_mesh = assets.add_mesh(render::Mesh::new_quad(&state.renderer), Some("quad"));
+        let quad_mesh = assets.add_mesh(
+            render::Mesh::new_quad(&state.renderer),
+            Some(Self::MESH_KEY_QUAD),
+        );
 
         // Skybox
         let material = materials::Material::skybox(&state.renderer, assets, "skybox_bgra.dds");
@@ -172,10 +178,12 @@ impl Scene {
                 let mesh = if let Some(path) = &mesh.path {
                     assets.add_mesh_from_file(&state.renderer, path)
                 } else if let Some(prefab) = &mesh.prefab {
-                    let mesh = match prefab {
-                        MeshPrefabCfg::Basis => render::Mesh::new_basis(&state.renderer),
-                    };
-                    assets.add_mesh(mesh, Some("basis"))
+                    match prefab {
+                        MeshPrefabCfg::Basis => assets.add_mesh(
+                            render::Mesh::new_basis(&state.renderer),
+                            Some(Self::MESH_KEY_BASIS),
+                        ),
+                    }
                 } else {
                     panic!("Unable to create mesh");
                 };
