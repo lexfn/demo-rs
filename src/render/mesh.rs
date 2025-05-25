@@ -12,7 +12,7 @@ struct MeshPart {
 }
 
 impl MeshPart {
-    fn from_buffers<T: Copy + Clone + bytemuck::Pod + bytemuck::Zeroable>(
+    fn from_data<T: Copy + Clone + bytemuck::Pod + bytemuck::Zeroable>(
         device: &wgpu::Device,
         vertices: &[T],
         indices: &[u32],
@@ -44,7 +44,7 @@ pub struct Mesh {
 impl Mesh {
     pub fn new_quad(device: &wgpu::Device) -> Self {
         Self {
-            parts: vec![MeshPart::from_buffers(
+            parts: vec![MeshPart::from_data(
                 device,
                 &[
                     // Bottom left
@@ -77,7 +77,7 @@ impl Mesh {
     pub fn new_basis(device: &wgpu::Device) -> Self {
         Self {
             parts: vec![
-                MeshPart::from_buffers(
+                MeshPart::from_data(
                     device,
                     &[
                         PositionUvNormalVertex {
@@ -103,7 +103,7 @@ impl Mesh {
                     ],
                     &[0, 1, 1, 2, 1, 3],
                 ),
-                MeshPart::from_buffers(
+                MeshPart::from_data(
                     device,
                     &[
                         PositionUvNormalVertex {
@@ -129,7 +129,7 @@ impl Mesh {
                     ],
                     &[0, 1, 1, 2, 1, 3],
                 ),
-                MeshPart::from_buffers(
+                MeshPart::from_data(
                     device,
                     &[
                         PositionUvNormalVertex {
@@ -159,10 +159,8 @@ impl Mesh {
         }
     }
 
-    // TODO Extract the file reading, this struct is only for rendering.
-    pub async fn from_file(device: &wgpu::Device, file_path: &str) -> Mesh {
-        let text = file::read_string_asset(file_path).await.unwrap();
-        let cursor = futures_lite::io::Cursor::new(text);
+    pub async fn from_data(device: &wgpu::Device, data: &str) -> Mesh {
+        let cursor = futures_lite::io::Cursor::new(data);
         let mut reader = futures_lite::io::BufReader::new(cursor);
 
         let (meshes, _) = tobj::futures::load_obj_buf(
@@ -199,7 +197,7 @@ impl Mesh {
                     })
                     .collect::<Vec<_>>();
 
-                MeshPart::from_buffers(device, &vertices, &m.mesh.indices)
+                MeshPart::from_data(device, &vertices, &m.mesh.indices)
             })
             .collect::<Vec<_>>();
 

@@ -60,7 +60,10 @@ impl Assets {
     }
 
     pub fn add_mesh_from_file(&mut self, rr: &Renderer, path: &str) -> MeshHandle {
-        self.add_mesh_impl(path, || future::block_on(Mesh::from_file(rr, path)))
+        self.add_mesh_impl(path, || {
+            let text = future::block_on(file::read_string_asset(path)).unwrap();
+            future::block_on(Mesh::from_data(rr, &text))
+        })
     }
 
     fn add_mesh_impl(&mut self, key: &str, create: impl FnOnce() -> Mesh) -> TextureHandle {
