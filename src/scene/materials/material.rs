@@ -1,17 +1,15 @@
 use super::super::components::{Camera, Transform};
 use super::super::Assets;
-use super::post_process::PostProcessMaterial;
 use super::uniforms::{Vec3Uniform, ViewInvProjUniform, WorldViewProjUniform};
 use crate::math::Vec3;
 use crate::render;
 use crate::render::{MaterialBuilder, PositionUvNormalVertex, PositionUvVertex, Renderer, Texture};
 
-// TODO Avoid this crap, use trait objects or smth
 pub enum Material {
     Color(render::Material),
     Textured(render::Material),
     Skybox(render::Material),
-    PostProcess(PostProcessMaterial),
+    PostProcess(render::Material),
 }
 
 impl Material {
@@ -29,13 +27,12 @@ impl Material {
 
     pub fn post_process(rr: &Renderer, assets: &mut Assets, src_texture: &Texture) -> Self {
         let shader = assets.add_shader_from_file(rr, "post-process.wgsl");
-        // TODO We shouldn't call assets again to get the actual objects, they should be returned
-        // from the Assets' methods that created them.
-        Self::PostProcess(PostProcessMaterial::new(
-            rr,
-            assets.shader(shader),
-            src_texture,
-        ))
+        let material = MaterialBuilder::new()
+            .with_2d_texture(rr, src_texture)
+            // TODO We shouldn't call assets again to get the actual objects, they should be returned
+            // from the Assets' methods that created them.
+            .build::<PositionUvVertex>(rr, assets.shader(shader));
+        Self::PostProcess(material)
     }
 
     pub fn skybox(rr: &Renderer, assets: &mut Assets, tex_path: &str) -> Self {
