@@ -11,6 +11,7 @@ pub struct MaterialBuilder {
     bind_groups: Vec<(wgpu::BindGroup, wgpu::BindGroupLayout)>,
     uniform_bufs: Vec<wgpu::Buffer>,
     wireframe: bool,
+    depth_write: bool,
 }
 
 impl MaterialBuilder {
@@ -19,12 +20,26 @@ impl MaterialBuilder {
             bind_groups: Vec::new(),
             uniform_bufs: Vec::new(),
             wireframe: false,
+            depth_write: true,
         }
     }
 
     pub fn with_2d_texture(self, rr: &Renderer, texture: &Texture) -> Self {
         let (bind_group_layout, bind_group) =
             rr.new_texture_bind_group(texture, wgpu::TextureViewDimension::D2);
+        Self {
+            bind_groups: self
+                .bind_groups
+                .into_iter()
+                .chain([(bind_group, bind_group_layout)])
+                .collect(),
+            ..self
+        }
+    }
+
+    pub fn with_cube_texture(self, rr: &Renderer, texture: &Texture) -> Self {
+        let (bind_group_layout, bind_group) =
+            rr.new_texture_bind_group(texture, wgpu::TextureViewDimension::Cube);
         Self {
             bind_groups: self
                 .bind_groups
@@ -54,13 +69,20 @@ impl MaterialBuilder {
         Self { wireframe, ..self }
     }
 
+    pub fn depth_write(self, write: bool) -> Self {
+        Self {
+            depth_write: write,
+            ..self
+        }
+    }
+
     pub fn build<V: Vertex>(self, rr: &Renderer, shader: &wgpu::ShaderModule) -> Material {
         let (bind_groups, bind_group_layouts): (Vec<_>, Vec<_>) =
             self.bind_groups.into_iter().unzip();
 
         let pipeline = rr.new_render_pipeline(RenderPipelineParams {
             shader_module: shader,
-            depth_write: true,
+            depth_write: self.depth_write,
             depth_enabled: true,
             wireframe: self.wireframe,
             bind_group_layouts: &bind_group_layouts.iter().collect::<Vec<_>>(),

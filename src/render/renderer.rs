@@ -10,6 +10,7 @@ use super::ui::Ui;
 
 pub type SurfaceSize = winit::dpi::PhysicalSize<u32>;
 
+// TODO Remove in favor of MaterialBuilder
 pub struct RenderPipelineParams<'a> {
     pub shader_module: &'a wgpu::ShaderModule,
     pub depth_write: bool,
