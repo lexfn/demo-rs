@@ -12,9 +12,9 @@ materials:
     name: yellow
     color: [ 1, 1, 0 ]
   - !Color
-    name: blue
+    name: green
     wireframe: true
-    color: [ 0, 0, 1 ]
+    color: [ 0, 1, 0 ]
 
 nodes:
   floor:
@@ -71,7 +71,7 @@ nodes:
     mesh:
       prefab: Basis
     material:
-      name: blue
+      name: green
 
   player_target:
     render_order: 0
