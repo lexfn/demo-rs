@@ -3,7 +3,7 @@ struct Matrices {
     view_proj: mat4x4<f32>,
 };
 
-@group(1) @binding(0)
+@group(0) @binding(0)
 var<uniform> matrices: Matrices;
 
 struct VertexInput {
@@ -24,10 +24,10 @@ fn vs_main(in: VertexInput) -> VertexOutput {
     return out;
 }
 
-@group(0) @binding(0)
+@group(1) @binding(0)
 var t_diffuse: texture_2d<f32>;
 
-@group(0) @binding(1)
+@group(1) @binding(1)
 var s_diffuse: sampler;
 
 @fragment

@@ -35,7 +35,7 @@ impl MaterialBuilder {
         }
     }
 
-    pub fn with_uniform_buffer(self, rr: &Renderer, uniform: impl bytemuck::NoUninit) -> Self {
+    pub fn with_uniform(self, rr: &Renderer, uniform: impl bytemuck::NoUninit) -> Self {
         let (bind_group_layout, bind_group, buf) =
             rr.new_uniform_bind_group(bytemuck::cast_slice(&[uniform]));
 

@@ -2,7 +2,6 @@ use super::super::components::{Camera, Transform};
 use super::super::Assets;
 use super::post_process::PostProcessMaterial;
 use super::skybox::SkyboxMaterial;
-use super::textured::TexturedMaterial;
 use super::uniforms::{Vec3Uniform, WorldViewProjUniform};
 use crate::math::Vec3;
 use crate::render;
@@ -11,8 +10,8 @@ use crate::render::{MaterialBuilder, PositionUvNormalVertex, Renderer, Texture};
 // TODO Avoid this crap, use trait objects or smth
 pub enum Material {
     Color(render::Material),
+    Textured(render::Material),
     Skybox(SkyboxMaterial),
-    Textured(TexturedMaterial),
     PostProcess(PostProcessMaterial),
 }
 
@@ -20,13 +19,13 @@ impl Material {
     pub fn textured(rr: &Renderer, assets: &mut Assets, tex_path: &str) -> Self {
         let shader = assets.add_shader_from_file(rr, "textured.wgsl");
         let tex = assets.add_2d_texture_from_file(rr, tex_path);
-        // TODO We shouldn't call assets again to get the actual objects, they should be returned
-        // from the Assets' methods that created them.
-        Self::Textured(TexturedMaterial::new(
-            rr,
-            assets.shader(shader),
-            assets.texture(tex),
-        ))
+        let material = render::MaterialBuilder::new()
+            .with_uniform(rr, WorldViewProjUniform::default())
+            // TODO We shouldn't call assets again to get the actual objects, they should be returned
+            // from the Assets' methods that created them.
+            .with_2d_texture(rr, assets.texture(tex))
+            .build::<PositionUvNormalVertex>(rr, assets.shader(shader));
+        Self::Textured(material)
     }
 
     pub fn post_process(rr: &Renderer, assets: &mut Assets, src_texture: &Texture) -> Self {
@@ -55,8 +54,8 @@ impl Material {
     pub fn color(rr: &Renderer, assets: &mut Assets, color: Vec3, wireframe: bool) -> Self {
         let shader = assets.add_shader_from_file(rr, "color.wgsl");
         let material = MaterialBuilder::new()
-            .with_uniform_buffer(rr, WorldViewProjUniform::default())
-            .with_uniform_buffer(rr, Vec3Uniform::new(color))
+            .with_uniform(rr, WorldViewProjUniform::default())
+            .with_uniform(rr, Vec3Uniform::new(color))
             .wireframe(wireframe)
             // TODO Leaner vertex format. Can't use it currently because this material
             // is used for file-loaded meshes where we currently only support a single vertex format.
@@ -73,7 +72,11 @@ impl Material {
                 0,
                 WorldViewProjUniform::new(&tr.matrix(), &cam_tr.view_matrix(), &cam.proj_matrix()),
             ),
-            Material::Textured(m) => m.set_wvp(rr, cam, cam_tr, tr),
+            Material::Textured(m) => m.update_buffer(
+                rr,
+                0,
+                WorldViewProjUniform::new(&tr.matrix(), &cam_tr.view_matrix(), &cam.proj_matrix()),
+            ),
             Material::Skybox(m) => m.set_wvp(rr, cam, cam_tr),
             Material::PostProcess(_) => (),
         }
