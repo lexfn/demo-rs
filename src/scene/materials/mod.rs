@@ -1,4 +1,3 @@
-mod color;
 mod material;
 mod post_process;
 mod skybox;
