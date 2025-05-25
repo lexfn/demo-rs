@@ -6,6 +6,7 @@ use crate::render::Texture;
 use futures_lite::future;
 use slotmap::{DefaultKey, SlotMap};
 use std::collections::HashMap;
+use ulid::Ulid;
 
 pub type MeshHandle = DefaultKey;
 pub type MaterialHandle = DefaultKey;
@@ -18,6 +19,7 @@ pub struct Assets {
     shaders: SlotMap<ShaderHandle, wgpu::ShaderModule>,
     shader_handles: HashMap<String, ShaderHandle>,
     meshes: SlotMap<MeshHandle, Mesh>,
+    mesh_handles: HashMap<String, MeshHandle>,
     materials: SlotMap<MaterialHandle, Material>,
 }
 
@@ -27,6 +29,7 @@ impl Assets {
             textures: SlotMap::new(),
             texture_handles: HashMap::new(),
             meshes: SlotMap::new(),
+            mesh_handles: HashMap::new(),
             materials: SlotMap::new(),
             shaders: SlotMap::new(),
             shader_handles: HashMap::new(),
@@ -51,13 +54,20 @@ impl Assets {
         self.meshes.get(handle).unwrap()
     }
 
-    pub fn add_mesh(&mut self, mesh: Mesh) -> MeshHandle {
-        self.meshes.insert(mesh)
+    pub fn add_mesh(&mut self, mesh: Mesh, key: Option<&str>) -> MeshHandle {
+        let rand_key = Ulid::new().to_string();
+        self.add_mesh_impl(key.unwrap_or(&rand_key), || mesh)
     }
 
     pub fn add_mesh_from_file(&mut self, rr: &Renderer, path: &str) -> MeshHandle {
-        self.meshes
-            .insert(future::block_on(Mesh::from_file(rr, path)))
+        self.add_mesh_impl(path, || future::block_on(Mesh::from_file(rr, path)))
+    }
+
+    fn add_mesh_impl(&mut self, key: &str, create: impl FnOnce() -> Mesh) -> TextureHandle {
+        *self
+            .mesh_handles
+            .entry(key.to_string())
+            .or_insert_with(|| self.meshes.insert(create()))
     }
 
     pub fn texture(&self, handle: TextureHandle) -> &Texture {
@@ -78,11 +88,11 @@ impl Assets {
         })
     }
 
-    fn add_texture(&mut self, key: &str, new_texture: impl FnOnce() -> Texture) -> TextureHandle {
+    fn add_texture(&mut self, key: &str, create: impl FnOnce() -> Texture) -> TextureHandle {
         *self
             .texture_handles
             .entry(key.to_string())
-            .or_insert_with(|| self.textures.insert(new_texture()))
+            .or_insert_with(|| self.textures.insert(create()))
     }
 
     pub fn material(&self, handle: MaterialHandle) -> &Material {

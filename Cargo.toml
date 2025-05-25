@@ -20,3 +20,4 @@ wgpu = "25.0.0"
 winit = { version = "0.30.10", features = ["rwh_05"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_yaml = "0.9.33"
+ulid = "1.2.1"

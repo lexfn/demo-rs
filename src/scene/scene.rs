@@ -40,7 +40,7 @@ impl Scene {
             Vec3::new(7.0, 7.0, 7.0),
         );
 
-        let quad_mesh = assets.add_mesh(render::Mesh::new_quad(&state.renderer));
+        let quad_mesh = assets.add_mesh(render::Mesh::new_quad(&state.renderer), Some("quad"));
 
         // Skybox
         let material = materials::Material::skybox(&state.renderer, assets, "skybox_bgra.dds");
@@ -169,14 +169,13 @@ impl Scene {
             }
 
             if let Some(mesh) = &node.mesh {
-                // TODO Cache, look up if already loaded
                 let mesh = if let Some(path) = &mesh.path {
                     assets.add_mesh_from_file(&state.renderer, path)
                 } else if let Some(prefab) = &mesh.prefab {
                     let mesh = match prefab {
                         MeshPrefabCfg::Basis => render::Mesh::new_basis(&state.renderer),
                     };
-                    assets.add_mesh(mesh)
+                    assets.add_mesh(mesh, Some("basis"))
                 } else {
                     panic!("Unable to create mesh");
                 };
