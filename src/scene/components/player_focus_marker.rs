@@ -2,14 +2,12 @@ use hecs::{With, World};
 
 use crate::math::Vec3;
 
-use super::{
-    Player, RenderTags, Transform, RENDER_TAG_HIDDEN, RENDER_TAG_SCENE,
-};
+use super::{Player, RenderTags, Transform, RENDER_TAG_HIDDEN, RENDER_TAG_SCENE};
 
 // A visual guide showing the current focus point of the player
-pub struct PlayerTarget;
+pub struct PlayerFocusMarker;
 
-impl PlayerTarget {
+impl PlayerFocusMarker {
     pub fn update(world: &mut World) {
         let (pos, player_pos) = {
             let (_, (player, player_tr)) = world
@@ -29,7 +27,7 @@ impl PlayerTarget {
         };
 
         let (_, (tr, tags)) = world
-            .query_mut::<With<(&mut Transform, &mut RenderTags), &PlayerTarget>>()
+            .query_mut::<With<(&mut Transform, &mut RenderTags), &PlayerFocusMarker>>()
             .into_iter()
             .next()
             .unwrap();

@@ -14,7 +14,7 @@ pub enum MeshPrefabCfg {
 
 #[derive(Deserialize, Debug)]
 pub enum ComponentCfg {
-    PlayerTarget,
+    PlayerFocusMarker,
 }
 
 #[derive(Deserialize, Debug)]

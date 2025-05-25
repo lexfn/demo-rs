@@ -76,7 +76,7 @@ nodes:
     material:
       name: green
 
-  player_target:
+  player_focus_marker:
     render_order: 0
     render_tags: 8 # hidden
     mesh:
@@ -84,7 +84,7 @@ nodes:
     material:
       name: yellow
     components:
-      - PlayerTarget
+      - PlayerFocusMarker
 
   skybox:
     render_order: -100

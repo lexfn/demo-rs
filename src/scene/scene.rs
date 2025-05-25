@@ -12,7 +12,7 @@ use crate::state::AppState;
 
 use super::assets::Assets;
 use super::components::{
-    Camera, Grab, Hud, Material, Mesh, Player, PlayerTarget, RenderOrder, RenderTags,
+    Camera, Grab, Hud, Material, Mesh, Player, PlayerFocusMarker, RenderOrder, RenderTags,
     Transform, RENDER_TAG_SCENE,
 };
 use super::{components, materials, MeshHandle};
@@ -89,7 +89,7 @@ impl Scene {
 
         Player::update(dt, &mut self.world, &mut self.physics, state);
         Grab::update(&mut self.world, &state.input, &mut self.physics);
-        PlayerTarget::update(&mut self.world);
+        PlayerFocusMarker::update(&mut self.world);
 
         if state.input.action_activated(InputAction::Spawn) {
             let player_tr = self.world.query_one_mut::<&Transform>(self.player).unwrap();
@@ -236,8 +236,8 @@ impl Scene {
 
             for cmp in node.components.as_ref().unwrap_or(&Vec::new()) {
                 match cmp {
-                    ComponentCfg::PlayerTarget => {
-                        self.world.insert(e, (PlayerTarget,)).unwrap();
+                    ComponentCfg::PlayerFocusMarker => {
+                        self.world.insert(e, (PlayerFocusMarker,)).unwrap();
                     }
                 }
             }
