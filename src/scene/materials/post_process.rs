@@ -1,5 +1,5 @@
-use crate::render::PositionUvVertex;
 use crate::render::Texture;
+use crate::render::{PositionUvVertex, Vertex};
 use crate::render::{RenderPipelineParams, Renderer};
 
 pub struct PostProcessMaterial {

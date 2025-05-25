@@ -1,5 +1,5 @@
-use crate::render::PositionUvNormalVertex;
 use crate::render::Texture;
+use crate::render::{PositionUvNormalVertex, Vertex};
 use crate::render::{RenderPipelineParams, Renderer};
 
 use super::super::components::{Camera, Transform};

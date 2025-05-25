@@ -1,3 +1,7 @@
+pub trait Vertex: Copy + Clone + bytemuck::Pod + bytemuck::Zeroable {
+    fn buffer_layout<'a>() -> wgpu::VertexBufferLayout<'a>;
+}
+
 #[repr(C)]
 #[derive(Default, Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct PositionUvNormalVertex {
@@ -6,8 +10,8 @@ pub struct PositionUvNormalVertex {
     pub normal: [f32; 3],
 }
 
-impl PositionUvNormalVertex {
-    pub fn buffer_layout<'a>() -> wgpu::VertexBufferLayout<'a> {
+impl Vertex for PositionUvNormalVertex {
+    fn buffer_layout<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             array_stride: size_of::<PositionUvNormalVertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
@@ -39,8 +43,8 @@ pub struct PositionUvVertex {
     pub uv: [f32; 2],
 }
 
-impl PositionUvVertex {
-    pub fn buffer_layout<'a>() -> wgpu::VertexBufferLayout<'a> {
+impl Vertex for PositionUvVertex {
+    fn buffer_layout<'a>() -> wgpu::VertexBufferLayout<'a> {
         wgpu::VertexBufferLayout {
             array_stride: size_of::<PositionUvVertex>() as wgpu::BufferAddress,
             step_mode: wgpu::VertexStepMode::Vertex,
