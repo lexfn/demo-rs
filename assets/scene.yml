@@ -15,6 +15,9 @@ materials:
     name: green
     wireframe: true
     color: [ 0, 1, 0 ]
+  - !Skybox
+    name: skybox
+    texture: skybox_bgra.dds
 
 nodes:
   floor:
@@ -82,3 +85,11 @@ nodes:
       name: yellow
     components:
       - PlayerTarget
+
+  skybox:
+    render_order: -100
+    render_tags: 0
+    mesh:
+      prefab: Quad
+    material:
+      name: skybox

@@ -48,16 +48,6 @@ impl Scene {
             Some(Self::MESH_KEY_QUAD),
         );
 
-        // Skybox
-        let material = materials::Material::skybox(&state.renderer, assets, "skybox_bgra.dds");
-        world.spawn((
-            Transform::default(),
-            Mesh(quad_mesh),
-            Material(assets.add_material(material)),
-            RenderOrder(-100),
-            RenderTags(RENDER_TAG_SCENE),
-        ));
-
         // Post-processor
         let pp_src_tex = world
             .query_one_mut::<&Camera>(player)
@@ -179,6 +169,10 @@ impl Scene {
                     assets.add_mesh_from_file(&state.renderer, path)
                 } else if let Some(prefab) = &mesh.prefab {
                     match prefab {
+                        MeshPrefabCfg::Quad => assets.add_mesh(
+                            render::Mesh::new_quad(&state.renderer),
+                            Some(Self::MESH_KEY_QUAD),
+                        ),
                         MeshPrefabCfg::Basis => assets.add_mesh(
                             render::Mesh::new_basis(&state.renderer),
                             Some(Self::MESH_KEY_BASIS),
@@ -215,6 +209,14 @@ impl Scene {
                         if *name == mat.name {
                             let mat =
                                 materials::Material::textured(&state.renderer, assets, texture);
+                            Some(assets.add_material(mat))
+                        } else {
+                            None
+                        }
+                    }
+                    MaterialCfg::Skybox { name, texture } => {
+                        if *name == mat.name {
+                            let mat = materials::Material::skybox(&state.renderer, assets, texture);
                             Some(assets.add_material(mat))
                         } else {
                             None

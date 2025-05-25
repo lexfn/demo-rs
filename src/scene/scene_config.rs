@@ -8,6 +8,7 @@ pub enum ColliderShapeCfg {
 
 #[derive(Deserialize, Debug)]
 pub enum MeshPrefabCfg {
+    Quad,
     Basis,
 }
 
@@ -24,6 +25,10 @@ pub enum MaterialCfg {
         wireframe: Option<bool>,
     },
     Textured {
+        name: String,
+        texture: String,
+    },
+    Skybox {
         name: String,
         texture: String,
     },
