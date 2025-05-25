@@ -88,10 +88,6 @@ impl Scene {
         assets: &mut Assets,
         new_canvas_size: &Option<SurfaceSize>,
     ) {
-        for e in state.input.new_raw_events() {
-            self.ui.handle_event(e, &state.window);
-        }
-
         self.physics.update(dt);
 
         Player::update(dt, &mut self.world, &mut self.physics, state);
@@ -110,6 +106,9 @@ impl Scene {
             self.resize(new_size, state, assets);
         }
 
+        for e in state.input.new_raw_events() {
+            self.ui.handle_event(e, &state.window);
+        }
         self.world
             .query_one_mut::<&mut Hud>(self.hud)
             .unwrap()
