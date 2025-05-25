@@ -10,7 +10,7 @@ use crate::math::Mat4;
 pub use material::{ApplyMaterial, Material, MaterialBuilder};
 pub use mesh::Mesh;
 pub use render_target::RenderTarget;
-pub use renderer::{RenderPipelineParams, Renderer, SurfaceSize};
+pub use renderer::{Renderer, SurfaceSize};
 pub use texture::Texture;
 pub use ui::Ui;
 pub use vertex::{PositionUvNormalVertex, PositionUvVertex};

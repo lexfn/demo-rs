@@ -1,5 +1,5 @@
 use super::vertex::Vertex;
-use super::{RenderPipelineParams, Renderer, Texture};
+use super::{Renderer, Texture};
 
 pub struct Material {
     pipeline: wgpu::RenderPipeline,
@@ -11,6 +11,7 @@ pub struct MaterialBuilder {
     bind_groups: Vec<(wgpu::BindGroup, wgpu::BindGroupLayout)>,
     uniform_bufs: Vec<wgpu::Buffer>,
     wireframe: bool,
+    depth_enabled: bool,
     depth_write: bool,
 }
 
@@ -20,6 +21,7 @@ impl MaterialBuilder {
             bind_groups: Vec::new(),
             uniform_bufs: Vec::new(),
             wireframe: false,
+            depth_enabled: true,
             depth_write: true,
         }
     }
@@ -80,13 +82,66 @@ impl MaterialBuilder {
         let (bind_groups, bind_group_layouts): (Vec<_>, Vec<_>) =
             self.bind_groups.into_iter().unzip();
 
-        let pipeline = rr.new_render_pipeline(RenderPipelineParams {
-            shader_module: shader,
-            depth_write: self.depth_write,
-            depth_enabled: true,
-            wireframe: self.wireframe,
+        let layout = rr.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+            label: None,
             bind_group_layouts: &bind_group_layouts.iter().collect::<Vec<_>>(),
-            vertex_buffer_layouts: &[V::buffer_layout()],
+            push_constant_ranges: &[],
+        });
+
+        let pipeline = rr.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+            label: None,
+            layout: Some(&layout),
+            vertex: wgpu::VertexState {
+                module: shader,
+                entry_point: Some("vs_main"),
+                buffers: &[V::buffer_layout()],
+                compilation_options: Default::default(),
+            },
+            fragment: Some(wgpu::FragmentState {
+                module: shader,
+                entry_point: Some("fs_main"),
+                compilation_options: Default::default(),
+                targets: &[Some(wgpu::ColorTargetState {
+                    format: rr.surface_texture_format(),
+                    blend: Some(wgpu::BlendState::REPLACE),
+                    write_mask: wgpu::ColorWrites::ALL,
+                })],
+            }),
+            primitive: wgpu::PrimitiveState {
+                topology: if self.wireframe {
+                    wgpu::PrimitiveTopology::LineList
+                } else {
+                    wgpu::PrimitiveTopology::TriangleList
+                },
+                strip_index_format: None,
+                front_face: wgpu::FrontFace::Ccw,
+                cull_mode: None,
+                polygon_mode: if self.wireframe {
+                    wgpu::PolygonMode::Line
+                } else {
+                    wgpu::PolygonMode::Fill
+                },
+                unclipped_depth: false,
+                conservative: false,
+            },
+            depth_stencil: if self.depth_enabled {
+                Some(wgpu::DepthStencilState {
+                    format: Renderer::DEPTH_TEX_FORMAT,
+                    depth_write_enabled: self.depth_write,
+                    depth_compare: wgpu::CompareFunction::Less,
+                    stencil: wgpu::StencilState::default(),
+                    bias: wgpu::DepthBiasState::default(),
+                })
+            } else {
+                None
+            },
+            multisample: wgpu::MultisampleState {
+                count: 1,
+                mask: !0,
+                alpha_to_coverage_enabled: false,
+            },
+            multiview: None,
+            cache: None,
         });
 
         Material {

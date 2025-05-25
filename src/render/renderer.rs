@@ -10,16 +10,6 @@ use super::ui::Ui;
 
 pub type SurfaceSize = winit::dpi::PhysicalSize<u32>;
 
-// TODO Remove in favor of MaterialBuilder
-pub struct RenderPipelineParams<'a> {
-    pub shader_module: &'a wgpu::ShaderModule,
-    pub depth_write: bool,
-    pub depth_enabled: bool,
-    pub wireframe: bool,
-    pub bind_group_layouts: &'a [&'a wgpu::BindGroupLayout],
-    pub vertex_buffer_layouts: &'a [wgpu::VertexBufferLayout<'a>],
-}
-
 pub struct Renderer<'a> {
     pub adapter_name: String,
     surface: wgpu::Surface<'a>,
@@ -31,7 +21,7 @@ pub struct Renderer<'a> {
 
 impl<'a> Renderer<'a> {
     // TODO Configurable?
-    const DEPTH_TEX_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
+    pub const DEPTH_TEX_FORMAT: wgpu::TextureFormat = wgpu::TextureFormat::Depth32Float;
 
     pub fn surface_texture_format(&self) -> wgpu::TextureFormat {
         self.surface_cfg.format
@@ -295,70 +285,6 @@ impl<'a> Renderer<'a> {
         });
 
         (layout, group)
-    }
-
-    pub fn new_render_pipeline(&self, params: RenderPipelineParams<'_>) -> wgpu::RenderPipeline {
-        let layout = self.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
-            label: None,
-            bind_group_layouts: params.bind_group_layouts,
-            push_constant_ranges: &[],
-        });
-
-        self.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
-            label: None,
-            layout: Some(&layout),
-            vertex: wgpu::VertexState {
-                module: params.shader_module,
-                entry_point: Some("vs_main"),
-                buffers: params.vertex_buffer_layouts,
-                compilation_options: Default::default(),
-            },
-            fragment: Some(wgpu::FragmentState {
-                module: params.shader_module,
-                entry_point: Some("fs_main"),
-                compilation_options: Default::default(),
-                targets: &[Some(wgpu::ColorTargetState {
-                    format: self.surface_cfg.format,
-                    blend: Some(wgpu::BlendState::REPLACE),
-                    write_mask: wgpu::ColorWrites::ALL,
-                })],
-            }),
-            primitive: wgpu::PrimitiveState {
-                topology: if params.wireframe {
-                    wgpu::PrimitiveTopology::LineList
-                } else {
-                    wgpu::PrimitiveTopology::TriangleList
-                },
-                strip_index_format: None,
-                front_face: wgpu::FrontFace::Ccw,
-                cull_mode: None,
-                polygon_mode: if params.wireframe {
-                    wgpu::PolygonMode::Line
-                } else {
-                    wgpu::PolygonMode::Fill
-                },
-                unclipped_depth: false,
-                conservative: false,
-            },
-            depth_stencil: if params.depth_enabled {
-                Some(wgpu::DepthStencilState {
-                    format: Self::DEPTH_TEX_FORMAT,
-                    depth_write_enabled: params.depth_write,
-                    depth_compare: wgpu::CompareFunction::Less,
-                    stencil: wgpu::StencilState::default(),
-                    bias: wgpu::DepthBiasState::default(),
-                })
-            } else {
-                None
-            },
-            multisample: wgpu::MultisampleState {
-                count: 1,
-                mask: !0,
-                alpha_to_coverage_enabled: false,
-            },
-            multiview: None,
-            cache: None,
-        })
     }
 
     fn new_bundle_encoder(&self, target: Option<&RenderTarget>) -> wgpu::RenderBundleEncoder {
