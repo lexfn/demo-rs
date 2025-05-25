@@ -7,7 +7,7 @@ use crate::math::{to_point3, Ray, Vec2, Vec3};
 use crate::physics::{ColliderBuilder, ColliderHandle, Physics, RayCastResult, RigidBodyHandle};
 use crate::render::RenderTarget;
 use crate::render::Renderer;
-use crate::state::State;
+use crate::state::AppState;
 use crate::window::CursorGrab;
 
 use super::camera::Camera;
@@ -39,11 +39,10 @@ impl Player {
     const ROTATION_SPEED: f32 = 0.003;
 
     pub fn spawn(w: &mut World, rr: &Renderer, physics: &mut Physics, position: Vec3) -> Entity {
-        let rt = RenderTarget::new(rr, None);
         let camera = Camera::new(
             rr.surface_size().width as f32 / rr.surface_size().height as f32,
             RENDER_TAG_SCENE,
-            Some(rt),
+            Some(RenderTarget::new(rr, None)),
         );
 
         let mut tr = Transform::from_pos(position);
@@ -77,7 +76,7 @@ impl Player {
         self.focus
     }
 
-    pub fn update(dt: f32, world: &mut World, physics: &mut Physics, state: &State) {
+    pub fn update(dt: f32, world: &mut World, physics: &mut Physics, state: &AppState) {
         let (_, (tr, cam, this)) = world
             .query_mut::<(&mut Transform, &mut Camera, &mut Player)>()
             .into_iter()
@@ -163,7 +162,7 @@ impl Player {
         transform.rotate(Vec3::x_axis().xyz(), v_delta, TransformSpace::Local);
     }
 
-    fn update_focus(&mut self, tr: &Transform, cam: &Camera, state: &State, physics: &Physics) {
+    fn update_focus(&mut self, tr: &Transform, cam: &Camera, state: &AppState, physics: &Physics) {
         let ray = if self.controlled {
             // From screen center
             Some((tr.position(), tr.forward()))

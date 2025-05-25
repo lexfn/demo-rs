@@ -8,7 +8,7 @@ use crate::physics::Physics;
 use crate::render;
 use crate::render::{Renderer, SurfaceSize, Ui};
 use crate::scene::scene_config::{ComponentCfg, MaterialCfg, MeshPrefabCfg, SceneCfg};
-use crate::state::State;
+use crate::state::AppState;
 
 use super::assets::Assets;
 use super::components::{
@@ -25,13 +25,15 @@ pub struct Scene {
     hud: Entity,
     ui: Ui,
     box_mesh: MeshHandle,
+    assets: Assets,
 }
 
 impl Scene {
     const MESH_KEY_BASIS: &'static str = "basis";
     const MESH_KEY_QUAD: &'static str = "quad";
 
-    pub fn new(state: &State, assets: &mut Assets) -> Self {
+    pub fn new(state: &AppState) -> Self {
+        let mut assets = Assets::new();
         let mut world = World::new();
         let mut physics = Physics::new();
 
@@ -56,7 +58,7 @@ impl Scene {
             .as_ref()
             .unwrap()
             .color_tex();
-        let material = materials::Material::post_process(&state.renderer, assets, pp_src_tex);
+        let material = materials::Material::post_process(&state.renderer, &mut assets, pp_src_tex);
         let postprocessor = world.spawn((
             Transform::default(),
             Camera::new(1.0, components::RENDER_TAG_POST_PROCESS, None),
@@ -78,16 +80,11 @@ impl Scene {
             hud,
             box_mesh,
             ui,
+            assets,
         }
     }
 
-    pub fn update(
-        &mut self,
-        dt: f32,
-        state: &State,
-        assets: &mut Assets,
-        new_canvas_size: &Option<SurfaceSize>,
-    ) {
+    pub fn update(&mut self, dt: f32, state: &AppState, new_canvas_size: &Option<SurfaceSize>) {
         self.physics.update(dt);
 
         Player::update(dt, &mut self.world, &mut self.physics, state);
@@ -97,13 +94,13 @@ impl Scene {
         if state.input.action_activated(InputAction::Spawn) {
             let player_tr = self.world.query_one_mut::<&Transform>(self.player).unwrap();
             let pos = player_tr.position() + player_tr.forward().xyz() * 5.0;
-            self.spawn_box(pos, Vec3::from_element(1.0), &state.renderer, assets);
+            self.spawn_box(pos, Vec3::from_element(1.0), &state.renderer);
         }
 
         self.sync_physics();
 
         if let Some(new_size) = new_canvas_size {
-            self.resize(new_size, state, assets);
+            self.resize(new_size, state);
         }
 
         for e in state.input.new_raw_events() {
@@ -115,13 +112,13 @@ impl Scene {
             .build(dt, state, &mut self.ui);
     }
 
-    pub fn render(&mut self, rr: &Renderer, assets: &Assets) {
-        self.render_with_camera(self.player, rr, assets);
-        self.render_with_camera(self.postprocessor, rr, assets);
+    pub fn render(&mut self, rr: &Renderer) {
+        self.render_with_camera(self.player, rr);
+        self.render_with_camera(self.postprocessor, rr);
     }
 
     // TODO Continue adding other stuff until all scene initialization is done via the file.
-    pub fn insert_from_cfg(&mut self, cfg: &SceneCfg, state: &State, assets: &mut Assets) {
+    pub fn insert_from_cfg(&mut self, cfg: &SceneCfg, state: &AppState) {
         for node in cfg.nodes.values() {
             let pos = node
                 .pos
@@ -165,14 +162,14 @@ impl Scene {
 
             if let Some(mesh) = &node.mesh {
                 let mesh = if let Some(path) = &mesh.path {
-                    assets.add_mesh_from_file(&state.renderer, path)
+                    self.assets.add_mesh_from_file(&state.renderer, path)
                 } else if let Some(prefab) = &mesh.prefab {
                     match prefab {
-                        MeshPrefabCfg::Quad => assets.add_mesh(
+                        MeshPrefabCfg::Quad => self.assets.add_mesh(
                             render::Mesh::new_quad(&state.renderer),
                             Some(Self::MESH_KEY_QUAD),
                         ),
-                        MeshPrefabCfg::Basis => assets.add_mesh(
+                        MeshPrefabCfg::Basis => self.assets.add_mesh(
                             render::Mesh::new_basis(&state.renderer),
                             Some(Self::MESH_KEY_BASIS),
                         ),
@@ -195,28 +192,35 @@ impl Scene {
                         if *name == mat.name {
                             let mat = materials::Material::color(
                                 &state.renderer,
-                                assets,
+                                &mut self.assets,
                                 Vec3::new(*r, *g, *b),
                                 wireframe.unwrap_or(false),
                             );
-                            Some(assets.add_material(mat))
+                            Some(self.assets.add_material(mat))
                         } else {
                             None
                         }
                     }
                     MaterialCfg::Textured { name, texture } => {
                         if *name == mat.name {
-                            let mat =
-                                materials::Material::textured(&state.renderer, assets, texture);
-                            Some(assets.add_material(mat))
+                            let mat = materials::Material::textured(
+                                &state.renderer,
+                                &mut self.assets,
+                                texture,
+                            );
+                            Some(self.assets.add_material(mat))
                         } else {
                             None
                         }
                     }
                     MaterialCfg::Skybox { name, texture } => {
                         if *name == mat.name {
-                            let mat = materials::Material::skybox(&state.renderer, assets, texture);
-                            Some(assets.add_material(mat))
+                            let mat = materials::Material::skybox(
+                                &state.renderer,
+                                &mut self.assets,
+                                texture,
+                            );
+                            Some(self.assets.add_material(mat))
                         } else {
                             None
                         }
@@ -242,7 +246,7 @@ impl Scene {
 
     // TODO Iterate over any camera, check its target and if it's configured to match the screen
     // size then resize it.
-    fn resize(&mut self, new_size: &SurfaceSize, state: &State, assets: &mut Assets) {
+    fn resize(&mut self, new_size: &SurfaceSize, state: &AppState) {
         let mut player_cam = self.world.get::<&mut Camera>(self.player).unwrap();
         player_cam.set_aspect(new_size.width as f32 / new_size.height as f32);
         player_cam
@@ -251,14 +255,15 @@ impl Scene {
             .resize((new_size.width, new_size.height), &state.renderer);
 
         let mut mat_cmp = self.world.get::<&mut Material>(self.postprocessor).unwrap();
-        assets.remove_material(mat_cmp.0);
+        self.assets.remove_material(mat_cmp.0);
 
         let color_tex = player_cam.target().as_ref().unwrap().color_tex();
-        let new_mat = materials::Material::post_process(&state.renderer, assets, color_tex);
-        mat_cmp.0 = assets.add_material(new_mat);
+        let new_mat =
+            materials::Material::post_process(&state.renderer, &mut self.assets, color_tex);
+        mat_cmp.0 = self.assets.add_material(new_mat);
     }
 
-    fn spawn_box(&mut self, pos: Vec3, scale: Vec3, rr: &Renderer, assets: &mut Assets) {
+    fn spawn_box(&mut self, pos: Vec3, scale: Vec3, rr: &Renderer) {
         let body = components::RigidBody::cuboid(
             components::RigidBodyParams {
                 pos,
@@ -267,18 +272,18 @@ impl Scene {
             },
             &mut self.physics,
         );
-        let mat = materials::Material::textured(rr, assets, "crate.png");
+        let mat = materials::Material::textured(rr, &mut self.assets, "crate.png");
         self.world.spawn((
             Transform::new(pos, scale),
             Mesh(self.box_mesh),
-            Material(assets.add_material(mat)),
+            Material(self.assets.add_material(mat)),
             body,
             RenderOrder(0),
             RenderTags(RENDER_TAG_SCENE),
         ));
     }
 
-    fn render_with_camera(&mut self, camera: Entity, rr: &Renderer, assets: &Assets) {
+    fn render_with_camera(&mut self, camera: Entity, rr: &Renderer) {
         if let Some((cam, cam_tr)) = self
             .world
             .query_one::<(&Camera, &Transform)>(camera)
@@ -304,9 +309,9 @@ impl Scene {
             let bundles = items
                 .into_iter()
                 .map(|(mesh, mat, tr, _)| {
-                    let mat = assets.material(mat.0);
+                    let mat = self.assets.material(mat.0);
                     mat.update(rr, cam, cam_tr, tr);
-                    rr.build_render_bundle(assets.mesh(mesh.0), mat, cam.target().as_ref())
+                    rr.build_render_bundle(self.assets.mesh(mesh.0), mat, cam.target().as_ref())
                 })
                 // TODO Avoid vec allocation
                 .collect::<Vec<wgpu::RenderBundle>>();

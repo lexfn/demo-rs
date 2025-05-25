@@ -10,13 +10,12 @@ use crate::frame_time::FrameTime;
 use crate::input::{Input, InputAction};
 use crate::render::{Renderer, SurfaceSize};
 use crate::scene::Scene;
-use crate::scene::{Assets, SceneCfg};
-use crate::state::State;
+use crate::scene::SceneCfg;
+use crate::state::AppState;
 
 #[derive(Default)]
 pub struct App<'a> {
-    state: Option<State<'a>>,
-    assets: Option<Assets>,
+    state: Option<AppState<'a>>,
     scene: Option<Scene>,
     frame_time: Option<FrameTime>,
     new_canvas_size: Option<SurfaceSize>,
@@ -27,7 +26,6 @@ impl App<'_> {
         // TODO Avoid this ugliness.
         let mut state = self.state.take().unwrap();
         let mut scene = self.scene.take().unwrap();
-        let mut assets = self.assets.take().unwrap();
 
         if state.input.action_activated(InputAction::Quit) {
             event_loop.exit();
@@ -36,14 +34,13 @@ impl App<'_> {
         let dt = self.frame_time.as_mut().unwrap().advance();
 
         state.renderer.update(self.new_canvas_size);
-        scene.update(dt, &state, &mut assets, &self.new_canvas_size);
-        scene.render(&state.renderer, &assets);
+        scene.update(dt, &state, &self.new_canvas_size);
+        scene.render(&state.renderer);
 
         state.input.clear();
         state.window.request_redraw();
 
         self.state = Some(state);
-        self.assets = Some(assets);
         self.scene = Some(scene);
         self.new_canvas_size = None;
     }
@@ -71,26 +68,23 @@ impl ApplicationHandler for App<'_> {
         window.request_redraw();
 
         let rr = future::block_on(Renderer::new(Arc::clone(&window)));
-        let mut assets = Assets::new();
 
-        let state = State {
+        let state = AppState {
             window,
             renderer: rr,
             input: Input::new(),
         };
 
-        let mut scene = Scene::new(&state, &mut assets);
+        let mut scene = Scene::new(&state);
         scene.insert_from_cfg(
             &SceneCfg::from_yaml(&String::from_utf8_lossy(include_bytes!(
                 "../assets/scene.yml"
             ))),
             &state,
-            &mut assets,
         );
 
         self.scene = Some(scene);
         self.frame_time = Some(FrameTime::new());
-        self.assets = Some(assets);
         self.state = Some(state);
     }
 
