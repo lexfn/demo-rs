@@ -13,14 +13,6 @@ pub use rapier3d::na::Rotation3;
 pub use rapier3d::na::Translation3;
 pub use rapier3d::prelude::Ray;
 
-#[rustfmt::skip]
-pub const OPENGL_TO_WGPU_MATRIX: Mat4 = Mat4::new(
-    1.0, 0.0, 0.0, 0.0,
-    0.0, 1.0, 0.0, 0.0,
-    0.0, 0.0, 0.5, 0.5,
-    0.0, 0.0, 0.0, 1.0,
-);
-
 // TODO Is there a better way to cast?
 pub fn to_point3(v: Vec3) -> Point3<f32> {
     Point3::origin().add(v)

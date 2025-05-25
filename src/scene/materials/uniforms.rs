@@ -1,4 +1,5 @@
-use crate::math::{Mat4, Vec3, OPENGL_TO_WGPU_MATRIX};
+use crate::math::{Mat4, Vec3};
+use crate::render;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -27,7 +28,7 @@ impl WorldViewProjUniform {
     pub fn new(world: &Mat4, view: &Mat4, proj: &Mat4) -> Self {
         Self {
             world: (*world).into(),
-            view_proj: (OPENGL_TO_WGPU_MATRIX * proj * view).into(),
+            view_proj: (render::WGPU_CONVERSION_MATRIX * proj * view).into(),
         }
     }
 }
@@ -53,7 +54,10 @@ impl ViewInvProjUniform {
     pub fn new(view: &Mat4, proj: &Mat4) -> Self {
         Self {
             view_mat: (*view).into(),
-            proj_mat_inv: (OPENGL_TO_WGPU_MATRIX * proj).try_inverse().unwrap().into(),
+            proj_mat_inv: (render::WGPU_CONVERSION_MATRIX * proj)
+                .try_inverse()
+                .unwrap()
+                .into(),
         }
     }
 }
