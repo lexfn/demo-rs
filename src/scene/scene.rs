@@ -2,7 +2,7 @@ use hecs::{Entity, World};
 
 use crate::input::InputAction;
 use crate::math::Vec3;
-use crate::physics::{ColliderBuilder, Physics, RigidBodyBuilder, RigidBodyType};
+use crate::physics::Physics;
 use crate::render;
 use crate::render::{Renderer, SurfaceSize, Ui};
 use crate::state::AppState;
@@ -10,7 +10,7 @@ use crate::state::AppState;
 use super::assets::Assets;
 use super::components::{
     Camera, Grab, Hud, Material, Mesh, Player, PlayerFocusMarker, RenderOrder, RenderTags,
-    Transform, RENDER_TAG_SCENE,
+    RigidBody, Transform, RENDER_TAG_SCENE,
 };
 use super::scene_config::{ComponentCfg, MaterialCfg, MeshPrefabCfg, SceneCfg};
 use super::{components, materials, MeshHandle};
@@ -115,7 +115,7 @@ impl Scene {
         self.render_with_camera(self.postprocess, rr);
     }
 
-    // TODO Continue adding other stuff until all scene initialization is done via the file.
+    // TODO Continue adding other stuff until most/all scene initialization is done via the file.
     pub fn insert_from_cfg(&mut self, cfg: &SceneCfg, state: &AppState) {
         for node in cfg.nodes.values() {
             let pos = node
@@ -132,30 +132,16 @@ impl Scene {
                 RenderTags(node.render_tags),
             ));
 
-            if let Some(body_def) = &node.body {
-                let movable = body_def.movable.unwrap_or(true);
-                let body_type = if movable {
-                    RigidBodyType::Dynamic
-                } else {
-                    RigidBodyType::Fixed
-                };
-                // TODO Move this logic into the RigidBody cmp
-                let body = RigidBodyBuilder::new(body_type).translation(pos).build();
-                // TODO
-                let collider = ColliderBuilder::cuboid(scale.x, scale.y, scale.z)
-                    .restitution(0.2)
-                    .friction(0.7)
-                    .build();
-                let body = self.physics.add_body(body, Some(collider));
-                self.world
-                    .insert(
-                        e,
-                        (components::RigidBody {
-                            handle: body,
-                            movable,
-                        },),
-                    )
-                    .unwrap();
+            if let Some(body) = &node.body {
+                let body = RigidBody::cuboid(
+                    components::RigidBodyParams {
+                        pos,
+                        scale,
+                        movable: body.movable.unwrap_or(true),
+                    },
+                    &mut self.physics,
+                );
+                self.world.insert(e, (body,)).unwrap();
             }
 
             if let Some(mesh) = &node.mesh {
@@ -263,7 +249,7 @@ impl Scene {
 
     // TODO Move to Player?
     fn spawn_box(&mut self, pos: Vec3, scale: Vec3, rr: &Renderer) {
-        let body = components::RigidBody::cuboid(
+        let body = RigidBody::cuboid(
             components::RigidBodyParams {
                 pos,
                 scale,
