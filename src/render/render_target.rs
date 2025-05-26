@@ -19,11 +19,11 @@ impl RenderTarget {
         }
     }
 
-    pub fn color_tex(&self) -> &Texture {
+    pub fn color_texture(&self) -> &Texture {
         &self.color_tex
     }
 
-    pub fn depth_tex(&self) -> &Texture {
+    pub fn depth_texture(&self) -> &Texture {
         &self.depth_tex
     }
 

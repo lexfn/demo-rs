@@ -109,7 +109,7 @@ impl<'a> Renderer<'a> {
         }
     }
 
-    pub fn update(&mut self, new_surface_size: Option<SurfaceSize>) {
+    pub fn resize(&mut self, new_surface_size: Option<SurfaceSize>) {
         if let Some(SurfaceSize { width, height }) = new_surface_size {
             if width > 0 && height > 0 {
                 self.surface_cfg.width = width;
@@ -156,7 +156,7 @@ impl<'a> Renderer<'a> {
 
         let color_attachment = Some(wgpu::RenderPassColorAttachment {
             view: target
-                .map(|t| t.color_tex().view())
+                .map(|t| t.color_texture().view())
                 .or(surface_tex_view.as_ref())
                 .unwrap(),
             resolve_target: None,
@@ -168,7 +168,7 @@ impl<'a> Renderer<'a> {
 
         let depth_attachment = Some(wgpu::RenderPassDepthStencilAttachment {
             view: target
-                .map(|t| t.depth_tex().view())
+                .map(|t| t.depth_texture().view())
                 .unwrap_or(self.depth_tex.view()),
             depth_ops: Some(wgpu::Operations {
                 load: wgpu::LoadOp::Clear(1.0),
@@ -288,8 +288,11 @@ impl<'a> Renderer<'a> {
     }
 
     fn new_bundle_encoder(&self, target: Option<&RenderTarget>) -> wgpu::RenderBundleEncoder {
-        let color_format = target.map_or(self.surface_texture_format(), |t| t.color_tex().format());
-        let depth_format = target.map_or(self.depth_texture_format(), |t| t.depth_tex().format());
+        let color_format = target.map_or(self.surface_texture_format(), |t| {
+            t.color_texture().format()
+        });
+        let depth_format =
+            target.map_or(self.depth_texture_format(), |t| t.depth_texture().format());
 
         self.device
             .create_render_bundle_encoder(&wgpu::RenderBundleEncoderDescriptor {

@@ -57,7 +57,7 @@ impl Scene {
             .target()
             .as_ref()
             .unwrap()
-            .color_tex();
+            .color_texture();
         let material = materials::Material::post_process(&state.renderer, &mut assets, pp_src_tex);
         let postprocess = world.spawn((
             Transform::default(),
@@ -257,12 +257,13 @@ impl Scene {
         let mut mat_cmp = self.world.get::<&mut Material>(self.postprocess).unwrap();
         self.assets.remove_material(mat_cmp.0);
 
-        let color_tex = player_cam.target().as_ref().unwrap().color_tex();
+        let color_tex = player_cam.target().as_ref().unwrap().color_texture();
         let new_mat =
             materials::Material::post_process(&state.renderer, &mut self.assets, color_tex);
         mat_cmp.0 = self.assets.add_material(new_mat);
     }
 
+    // TODO Move to Player?
     fn spawn_box(&mut self, pos: Vec3, scale: Vec3, rr: &Renderer) {
         let body = components::RigidBody::cuboid(
             components::RigidBodyParams {

@@ -23,7 +23,7 @@ pub struct App<'a> {
 
 impl App<'_> {
     fn update_and_render(&mut self, event_loop: &ActiveEventLoop) {
-        // TODO Avoid this ugliness.
+        // TODO Any better way?
         let mut state = self.state.take().unwrap();
         let mut scene = self.scene.take().unwrap();
 
@@ -33,7 +33,8 @@ impl App<'_> {
 
         let dt = self.frame_time.as_mut().unwrap().advance();
 
-        state.renderer.update(self.new_canvas_size);
+        state.renderer.resize(self.new_canvas_size);
+
         scene.update(dt, &state, &self.new_canvas_size);
         scene.render(&state.renderer);
 
