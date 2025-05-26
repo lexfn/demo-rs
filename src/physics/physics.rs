@@ -18,9 +18,7 @@ pub struct Physics {
 }
 
 pub struct RayCastResult {
-    // Distance of the hit along the ray
     pub distance: f32,
-    // Body that was hit
     pub collider: ColliderHandle,
 }
 
@@ -42,8 +40,8 @@ impl Physics {
         }
     }
 
-    pub fn add_collider(&mut self, col: Collider) -> ColliderHandle {
-        self.colliders.insert(col)
+    pub fn add_collider(&mut self, collider: Collider) -> ColliderHandle {
+        self.colliders.insert(collider)
     }
 
     pub fn add_body(&mut self, body: RigidBody, collider: Option<Collider>) -> RigidBodyHandle {

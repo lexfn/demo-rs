@@ -1,7 +1,5 @@
-use rapier3d::prelude::*;
-
 use crate::math::Vec3;
-use crate::physics::Physics;
+use crate::physics::{ColliderBuilder, Physics, RigidBodyBuilder, RigidBodyHandle, RigidBodyType};
 
 pub struct RigidBodyParams {
     pub pos: Vec3,
@@ -23,7 +21,7 @@ impl RigidBody {
         } = params;
 
         let body = RigidBodyBuilder::new(body_type(movable))
-            .translation(vector![pos.x, pos.y, pos.z])
+            .translation(Vec3::new(pos.x, pos.y, pos.z))
             .build();
         let collider = ColliderBuilder::cuboid(scale.x, scale.y, scale.z)
             .restitution(0.2)

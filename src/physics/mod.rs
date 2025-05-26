@@ -1,7 +1,11 @@
 mod physics;
 
-pub type ColliderBuilder = rapier3d::prelude::ColliderBuilder;
-pub type ColliderHandle = rapier3d::prelude::ColliderHandle;
-pub type RigidBodyHandle = rapier3d::prelude::RigidBodyHandle;
+use rapier3d::prelude;
+
+pub type ColliderBuilder = prelude::ColliderBuilder;
+pub type RigidBodyBuilder = prelude::RigidBodyBuilder;
+pub type ColliderHandle = prelude::ColliderHandle;
+pub type RigidBodyHandle = prelude::RigidBodyHandle;
+pub type RigidBodyType = prelude::RigidBodyType;
 
 pub use physics::{Physics, RayCastResult};

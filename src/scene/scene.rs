@@ -1,13 +1,10 @@
 use hecs::{Entity, World};
-use rapier3d::dynamics::{RigidBodyBuilder, RigidBodyType};
-use rapier3d::prelude::*;
 
 use crate::input::InputAction;
 use crate::math::Vec3;
-use crate::physics::Physics;
+use crate::physics::{ColliderBuilder, Physics, RigidBodyBuilder, RigidBodyType};
 use crate::render;
 use crate::render::{Renderer, SurfaceSize, Ui};
-use crate::scene::scene_config::{ComponentCfg, MaterialCfg, MeshPrefabCfg, SceneCfg};
 use crate::state::AppState;
 
 use super::assets::Assets;
@@ -15,6 +12,7 @@ use super::components::{
     Camera, Grab, Hud, Material, Mesh, Player, PlayerFocusMarker, RenderOrder, RenderTags,
     Transform, RENDER_TAG_SCENE,
 };
+use super::scene_config::{ComponentCfg, MaterialCfg, MeshPrefabCfg, SceneCfg};
 use super::{components, materials, MeshHandle};
 
 pub struct Scene {
