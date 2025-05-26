@@ -13,7 +13,7 @@ use super::components::{
     RigidBody, Transform, RENDER_TAG_SCENE,
 };
 use super::scene_config::{ComponentCfg, MaterialCfg, MeshPrefabCfg, SceneCfg};
-use super::{components, materials, MeshHandle};
+use super::{components, materials};
 
 pub struct Scene {
     world: World,
@@ -22,13 +22,13 @@ pub struct Scene {
     player: Entity,
     hud: Entity,
     ui: Ui,
-    box_mesh: MeshHandle,
     assets: Assets,
 }
 
 impl Scene {
     const MESH_KEY_BASIS: &'static str = "basis";
     const MESH_KEY_QUAD: &'static str = "quad";
+    const MESH_KEY_BOX: &'static str = "cube.obj";
 
     pub fn new(state: &AppState) -> Self {
         let mut assets = Assets::new();
@@ -67,8 +67,9 @@ impl Scene {
         ));
 
         let hud = world.spawn((Hud,));
-        let box_mesh = assets.add_mesh_from_file(&state.renderer, "cube.obj");
         let ui = Ui::new(&state.window, &state.renderer);
+
+        assets.add_mesh_from_file(&state.renderer, Self::MESH_KEY_BOX);
 
         Self {
             world,
@@ -76,7 +77,6 @@ impl Scene {
             player,
             postprocess,
             hud,
-            box_mesh,
             ui,
             assets,
         }
@@ -258,9 +258,10 @@ impl Scene {
             &mut self.physics,
         );
         let mat = materials::Material::textured(rr, &mut self.assets, "crate.png");
+        let mesh = self.assets.mesh_handle(Self::MESH_KEY_BOX);
         self.world.spawn((
             Transform::new(pos, scale),
-            Mesh(self.box_mesh),
+            Mesh(mesh),
             Material(self.assets.add_material(mat)),
             body,
             RenderOrder(0),
@@ -310,10 +311,7 @@ impl Scene {
     }
 
     fn sync_physics(&mut self) {
-        for (_, (t, b)) in self
-            .world
-            .query_mut::<(&mut Transform, &components::RigidBody)>()
-        {
+        for (_, (t, b)) in self.world.query_mut::<(&mut Transform, &RigidBody)>() {
             let body = self.physics.body(b.handle());
             t.set(*body.translation(), *body.rotation().inverse().quaternion());
         }

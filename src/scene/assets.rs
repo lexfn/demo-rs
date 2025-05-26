@@ -50,6 +50,9 @@ impl Assets {
             })
     }
 
+    pub fn mesh_handle(&self, key: &str) -> MeshHandle {
+        *self.mesh_handles.get(key).unwrap()
+    }
     pub fn mesh(&self, handle: MeshHandle) -> &Mesh {
         self.meshes.get(handle).unwrap()
     }
