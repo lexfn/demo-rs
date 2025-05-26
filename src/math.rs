@@ -1,5 +1,3 @@
-use std::ops::Add;
-
 use rapier3d::na;
 use rapier3d::na::Point3;
 
@@ -15,5 +13,5 @@ pub use rapier3d::prelude::Ray;
 
 // TODO Is there a better way to cast?
 pub fn to_point3(v: Vec3) -> Point3<f32> {
-    Point3::origin().add(v)
+    Point3::new(v.x, v.y, v.z)
 }
