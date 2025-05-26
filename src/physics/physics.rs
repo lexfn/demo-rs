@@ -3,10 +3,6 @@ use rapier3d::prelude::*;
 
 use crate::math::Vec3;
 
-pub use rapier3d::prelude::ColliderBuilder;
-pub use rapier3d::prelude::ColliderHandle;
-pub use rapier3d::prelude::RigidBodyHandle;
-
 pub struct Physics {
     colliders: ColliderSet,
     bodies: RigidBodySet,
