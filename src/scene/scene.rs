@@ -98,7 +98,7 @@ impl Scene {
         self.sync_physics();
 
         if let Some(new_size) = new_canvas_size {
-            self.resize(new_size, state);
+            self.resize(state, new_size);
         }
 
         for e in state.input.new_raw_events() {
@@ -230,7 +230,7 @@ impl Scene {
 
     // TODO Iterate over any camera, check its target and if it's configured to match the screen
     // size then resize it.
-    fn resize(&mut self, new_size: &SurfaceSize, state: &AppState) {
+    fn resize(&mut self, state: &AppState, new_size: &SurfaceSize) {
         let mut player_cam = self.world.get::<&mut Camera>(self.player).unwrap();
         player_cam.set_aspect(new_size.width as f32 / new_size.height as f32);
         player_cam
