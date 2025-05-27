@@ -57,8 +57,8 @@ impl Transform {
     }
 
     pub fn translate(&mut self, v: Vec3) {
-        self.m.append_translation_mut(&v);
         self.pos += v;
+        self.rebuild_matrix();
     }
 
     pub fn set_position(&mut self, pos: Vec3) {
@@ -91,8 +91,7 @@ impl Transform {
     fn rebuild_matrix(&mut self) {
         let rot_m = Rotation3::from(self.rot).transpose();
         let tr_m = Translation3::new(self.pos.x, self.pos.y, self.pos.z);
-        let rot_and_tr_m = tr_m * rot_m;
-        self.m = rot_and_tr_m
+        self.m = (tr_m * rot_m)
             .to_matrix()
             .prepend_nonuniform_scaling(&self.scale);
     }
