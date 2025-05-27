@@ -227,55 +227,71 @@ impl Scene {
                 self.world.insert(e, (Mesh(mesh),)).unwrap();
             }
 
-            if let Some(mat) = &node.material {
+            if let Some(mats) = &node.materials {
                 // TODO Cache, don't re-create. Currently when several nodes use the same material,
                 // only one of them is rendered, must be smth with how the materials work.
-                let mat = cfg.materials.iter().find_map(|m| match m {
-                    MaterialCfg::Color {
-                        name,
-                        color: [r, g, b],
-                        wireframe,
-                    } => {
-                        if *name == mat.name {
-                            let mat = materials::Material::color(
-                                &state.renderer,
-                                &mut self.assets,
-                                Vec3::new(*r, *g, *b),
-                                wireframe.unwrap_or(false),
-                            );
-                            Some(self.assets.add_material(mat))
-                        } else {
-                            None
-                        }
-                    }
-                    MaterialCfg::Textured { name, texture } => {
-                        if *name == mat.name {
-                            let mat = materials::Material::textured(
-                                &state.renderer,
-                                &mut self.assets,
-                                texture,
-                            );
-                            Some(self.assets.add_material(mat))
-                        } else {
-                            None
-                        }
-                    }
-                    MaterialCfg::Skybox { name, texture } => {
-                        if *name == mat.name {
-                            let mat = materials::Material::skybox(
-                                &state.renderer,
-                                &mut self.assets,
-                                texture,
-                            );
-                            Some(self.assets.add_material(mat))
-                        } else {
-                            None
-                        }
-                    }
-                });
+                let mats = mats
+                    .iter()
+                    .filter_map(|mat_name| {
+                        cfg.materials.iter().find_map(|m| match m {
+                            MaterialCfg::Color {
+                                name,
+                                color: [r, g, b],
+                                wireframe,
+                            } => {
+                                if name == mat_name {
+                                    let mat = materials::Material::color(
+                                        &state.renderer,
+                                        &mut self.assets,
+                                        Vec3::new(*r, *g, *b),
+                                        wireframe.unwrap_or(false),
+                                    );
+                                    Some(self.assets.add_material(mat))
+                                } else {
+                                    None
+                                }
+                            }
+                            MaterialCfg::Textured { name, texture } => {
+                                if name == mat_name {
+                                    let mat = materials::Material::textured(
+                                        &state.renderer,
+                                        &mut self.assets,
+                                        texture,
+                                    );
+                                    Some(self.assets.add_material(mat))
+                                } else {
+                                    None
+                                }
+                            }
+                            MaterialCfg::Skybox { name, texture } => {
+                                if name == mat_name {
+                                    let mat = materials::Material::skybox(
+                                        &state.renderer,
+                                        &mut self.assets,
+                                        texture,
+                                    );
+                                    Some(self.assets.add_material(mat))
+                                } else {
+                                    None
+                                }
+                            }
+                        })
+                    })
+                    .take(4) // Max supported materials at the moment.
+                    .collect::<Vec<_>>();
 
-                if let Some(mat) = mat {
-                    self.world.insert(e, (Materials::single(mat),)).unwrap();
+                if !mats.is_empty() {
+                    self.world
+                        .insert(
+                            e,
+                            (Materials([
+                                mats.first().copied(),
+                                mats.get(1).copied(),
+                                mats.get(2).copied(),
+                                mats.get(3).copied(),
+                            ]),),
+                        )
+                        .unwrap();
                 } else {
                     panic!("Unable to create material");
                 }

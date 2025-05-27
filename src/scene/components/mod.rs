@@ -22,13 +22,10 @@ pub struct Mesh(pub MeshHandle);
 
 pub struct Materials(pub [Option<MaterialHandle>; 4]);
 
+// TODO Extract to a mod
 impl Materials {
     pub fn single(handle: MaterialHandle) -> Self {
         Self([Some(handle), None, None, None])
-    }
-
-    pub fn first(&self) -> MaterialHandle {
-        self.0.first().unwrap().unwrap()
     }
 }
 

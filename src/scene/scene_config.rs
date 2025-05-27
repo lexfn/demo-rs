@@ -47,11 +47,6 @@ pub struct MeshCfg {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct NodeMaterialCfg {
-    pub name: String,
-}
-
-#[derive(Deserialize, Debug)]
 pub struct NodeCfg {
     pub render_order: Option<i32>,
     pub render_tags: Option<u32>,
@@ -59,7 +54,7 @@ pub struct NodeCfg {
     pub scale: Option<[f32; 3]>,
     pub body: Option<BodyCfg>,
     pub mesh: Option<MeshCfg>,
-    pub material: Option<NodeMaterialCfg>,
+    pub materials: Option<Vec<String>>,
     pub components: Option<Vec<ComponentCfg>>,
 }
 

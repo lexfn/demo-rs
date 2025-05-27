@@ -9,9 +9,17 @@ materials:
     name: red
     color: [ 1, 0, 0 ]
   - !Color
-    name: green
+    name: red_wireframe
+    wireframe: true
+    color: [ 1, 0, 0 ]
+  - !Color
+    name: green_wireframe
     wireframe: true
     color: [ 0, 1, 0 ]
+  - !Color
+    name: blue_wireframe
+    wireframe: true
+    color: [ 0, 0, 1 ]
   - !Skybox
     name: skybox
     texture: skybox_bgra.dds
@@ -24,8 +32,7 @@ nodes:
       shape: Cube
     mesh:
       path: cube.obj
-    material:
-      name: bricks
+    materials: [ bricks ]
 
   crate:
     pos: [ 0, 5, 0 ]
@@ -33,8 +40,7 @@ nodes:
       shape: Cube
     mesh:
       path: cube.obj
-    material:
-      name: crate
+    materials: [ crate ]
 
   crate2:
     pos: [ 5, 3, 0 ]
@@ -42,8 +48,7 @@ nodes:
       shape: Cube
     mesh:
       path: cube.obj
-    material:
-      name: crate
+    materials: [ crate ]
 
   colored_box:
     pos: [ 3, 3, -3 ]
@@ -53,15 +58,13 @@ nodes:
     body:
       movable: true
       shape: Cube
-    material:
-      name: red
+    materials: [ red ]
 
   player_focus_marker:
     render_tags: 2 # hidden
     mesh:
       prefab: Basis
-    material:
-      name: green
+    materials: [ red_wireframe, green_wireframe, blue_wireframe ]
     components:
       - PlayerFocusMarker
 
@@ -69,5 +72,4 @@ nodes:
     render_order: -100
     mesh:
       prefab: Quad
-    material:
-      name: skybox
+    materials: [ skybox ]
