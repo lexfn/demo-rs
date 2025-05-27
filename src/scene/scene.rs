@@ -9,7 +9,7 @@ use crate::state::AppState;
 
 use super::assets::Assets;
 use super::components::{
-    Camera, Grab, Hud, Material, Mesh, Player, PlayerFocusMarker, RenderOrder, RenderTags,
+    Camera, Grab, Hud, Materials, Mesh, Player, PlayerFocusMarker, RenderOrder, RenderTags,
     RigidBody, Transform, RENDER_TAG_SCENE,
 };
 use super::scene_config::{ComponentCfg, MaterialCfg, MeshPrefabCfg, SceneCfg};
@@ -61,7 +61,7 @@ impl Scene {
             Transform::default(),
             Camera::new(1.0, components::RENDER_TAG_POST_PROCESS, None),
             Mesh(quad_mesh),
-            Material(assets.add_material(material)),
+            Materials::single(assets.add_material(material)),
             RenderOrder(100),
             RenderTags(components::RENDER_TAG_POST_PROCESS),
         ));
@@ -114,6 +114,8 @@ impl Scene {
         let mut cameras = self
             .world
             .query::<(&Camera, &Transform, Option<&RenderOrder>)>();
+
+        // Sort cameras by render order
         let mut cameras = cameras.iter().collect::<Vec<_>>();
         cameras.sort_by(|&(_, (.., ro1)), &(_, (.., ro2))| {
             ro1.unwrap_or(&RenderOrder(0))
@@ -125,7 +127,7 @@ impl Scene {
         for (_, (cam, cam_tr, _)) in cameras {
             let mut items = self.world.query::<(
                 &Mesh,
-                &Material,
+                &Materials,
                 &Transform,
                 Option<&RenderOrder>,
                 Option<&RenderTags>,
@@ -137,9 +139,7 @@ impl Scene {
                 .filter(|(_, (.., tag))| {
                     cam.should_render(tag.unwrap_or(&RenderTags(RENDER_TAG_SCENE)).0)
                 })
-                .map(|(_, (mesh, material, transform, order, _))| {
-                    (mesh, material, transform, order)
-                })
+                .map(|(_, (mesh, mats, tr, order, _))| (mesh, mats, tr, order))
                 .collect::<Vec<_>>();
 
             // Sort by render order
@@ -152,8 +152,8 @@ impl Scene {
 
             let bundles = items
                 .into_iter()
-                .map(|(mesh, mat, tr, _)| {
-                    let mat = self.assets.material(mat.0);
+                .map(|(mesh, mats, tr, _)| {
+                    let mat = self.assets.material(mats.first());
                     let mesh = self.assets.mesh(mesh.0);
                     mat.update(rr, cam, cam_tr, tr);
                     rr.build_render_bundle(mesh, mat, cam.target().as_ref())
@@ -267,7 +267,7 @@ impl Scene {
                 });
 
                 if let Some(mat) = mat {
-                    self.world.insert(e, (Material(mat),)).unwrap();
+                    self.world.insert(e, (Materials::single(mat),)).unwrap();
                 } else {
                     panic!("Unable to create material");
                 }
@@ -293,13 +293,14 @@ impl Scene {
             .unwrap()
             .resize((new_size.width, new_size.height), &state.renderer);
 
-        let mut mat_cmp = self.world.get::<&mut Material>(self.postprocess).unwrap();
-        self.assets.remove_material(mat_cmp.0);
+        let mut mats = self.world.get::<&mut Materials>(self.postprocess).unwrap();
+        self.assets
+            .remove_material(mats.0.get_mut(0).unwrap().unwrap());
 
         let color_tex = player_cam.target().as_ref().unwrap().color_texture();
         let new_mat =
             materials::Material::post_process(&state.renderer, &mut self.assets, color_tex);
-        mat_cmp.0 = self.assets.add_material(new_mat);
+        mats.0[0] = Some(self.assets.add_material(new_mat));
     }
 
     // TODO Move to Player?
@@ -317,7 +318,7 @@ impl Scene {
         self.world.spawn((
             Transform::new(pos, scale),
             Mesh(mesh),
-            Material(self.assets.add_material(mat)),
+            Materials([Some(self.assets.add_material(mat)), None, None, None]),
             body,
         ));
     }

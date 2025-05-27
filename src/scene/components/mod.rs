@@ -19,7 +19,18 @@ use crate::scene::{MaterialHandle, MeshHandle};
 pub struct RenderTags(pub u32);
 pub struct RenderOrder(pub i32);
 pub struct Mesh(pub MeshHandle);
-pub struct Material(pub MaterialHandle);
+
+pub struct Materials(pub [Option<MaterialHandle>; 4]);
+
+impl Materials {
+    pub fn single(handle: MaterialHandle) -> Self {
+        Self([Some(handle), None, None, None])
+    }
+
+    pub fn first(&self) -> MaterialHandle {
+        self.0.first().unwrap().unwrap()
+    }
+}
 
 pub const RENDER_TAG_SCENE: u32 = 0b00000000;
 pub const RENDER_TAG_POST_PROCESS: u32 = 0b00000001;
