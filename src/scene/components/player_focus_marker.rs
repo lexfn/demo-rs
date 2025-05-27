@@ -20,7 +20,7 @@ impl PlayerFocusMarker {
 
         let (new_tag, new_pos, new_scale) = if let Some(pos) = pos {
             let dist_to_camera = (player_pos - pos).magnitude();
-            let scale = (dist_to_camera / 10.0).clamp(0.01, 0.1);
+            let scale = (dist_to_camera / 10.0).clamp(0.1, 0.5);
             (RENDER_TAG_SCENE, pos, scale)
         } else {
             (RENDER_TAG_HIDDEN, Vec3::zeros(), 1.0)

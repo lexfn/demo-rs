@@ -236,7 +236,7 @@ impl Scene {
         player_cam
             .target_mut()
             .unwrap()
-            .resize((new_size.width / 8, new_size.height / 8), &state.renderer);
+            .resize((new_size.width, new_size.height), &state.renderer);
 
         let mut mat_cmp = self.world.get::<&mut Material>(self.postprocess).unwrap();
         self.assets.remove_material(mat_cmp.0);

@@ -11,6 +11,7 @@ materials:
   - !Color
     name: yellow
     color: [ 1, 1, 0 ]
+    wireframe: true
   - !Color
     name: green
     wireframe: true
@@ -74,15 +75,15 @@ nodes:
     mesh:
       prefab: Basis
     material:
-      name: green
+      name: yellow
 
   player_focus_marker:
     render_order: 0
     render_tags: 8 # hidden
     mesh:
-      path: cube.obj
+      prefab: Basis
     material:
-      name: yellow
+      name: green
     components:
       - PlayerFocusMarker
 
