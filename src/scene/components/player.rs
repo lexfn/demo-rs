@@ -8,7 +8,7 @@ use crate::physics::{ColliderBuilder, ColliderHandle, Physics, RayCastResult, Ri
 use crate::render::RenderTarget;
 use crate::render::Renderer;
 use crate::state::AppState;
-use crate::window::CursorGrab;
+use crate::window::Window;
 
 use super::camera::Camera;
 use super::transform::{Transform, TransformSpace};
@@ -168,17 +168,9 @@ impl Player {
             Some((tr.position(), tr.forward()))
         } else if let Some(cursor_pos) = state.input.cursor_position() {
             // From cursor position
-            let cursor_pos = Vec2::new(cursor_pos.0, cursor_pos.1);
-            let canvas_size = Vec2::new(
-                state.window.inner_size().width as f32,
-                state.window.inner_size().height as f32,
-            );
-            // Normalized device coordinates (-1..1)
-            let mut cursor_ndc_pos =
-                (cursor_pos.component_div(&canvas_size)) * 2.0 - Vec2::from_element(1.0);
-            // Needed for some reason... Is there a bug somewhere that gets compensated by this, or is wgpu
-            // NDC origin in the lower left window corner?
-            cursor_ndc_pos.y *= -1.0;
+            let cursor_ndc_pos = state
+                .window
+                .normalized_coordinates(Vec2::new(cursor_pos.0, cursor_pos.1));
             let m = tr.matrix() * cam.proj_matrix().try_inverse().unwrap();
             let cursor_world_pos = m.transform_point(&to_point3(Vec3::new(
                 cursor_ndc_pos.x,
