@@ -19,14 +19,14 @@ impl Window for winit::window::Window {
         }
     }
 
-    fn normalized_coordinates(&self, cursor_coords: Vec2) -> Vec2 {
+    fn normalized_coordinates(&self, window_coordinates: Vec2) -> Vec2 {
         let canvas_size = Vec2::new(
             self.inner_size().width as f32,
             self.inner_size().height as f32,
         );
         // Normalized device coordinates (-1..1)
         let mut ndc_coords =
-            (cursor_coords.component_div(&canvas_size)) * 2.0 - Vec2::from_element(1.0);
+            (window_coordinates.component_div(&canvas_size)) * 2.0 - Vec2::from_element(1.0);
         // Needed for some reason... Is there a bug somewhere that gets compensated by this, or is wgpu
         // NDC origin in the lower left window corner?
         ndc_coords.y *= -1.0;
