@@ -9,10 +9,6 @@ materials:
     name: red
     color: [ 1, 0, 0 ]
   - !Color
-    name: yellow
-    color: [ 1, 1, 0 ]
-    wireframe: true
-  - !Color
     name: green
     wireframe: true
     color: [ 0, 1, 0 ]
@@ -67,15 +63,6 @@ nodes:
       shape: Cube
     material:
       name: red
-
-  basis:
-    render_order: 0
-    render_tags: 1
-    pos: [ 2, 1, 2 ]
-    mesh:
-      prefab: Basis
-    material:
-      name: yellow
 
   player_focus_marker:
     render_order: 0
