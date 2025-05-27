@@ -154,10 +154,10 @@ impl Scene {
                 .into_iter()
                 .map(|(mesh, mat, tr, _)| {
                     let mat = self.assets.material(mat.0);
+                    let mesh = self.assets.mesh(mesh.0);
                     mat.update(rr, cam, cam_tr, tr);
-                    rr.build_render_bundle(self.assets.mesh(mesh.0), mat, cam.target().as_ref())
+                    rr.build_render_bundle(mesh, mat, cam.target().as_ref())
                 })
-                // TODO Avoid vec allocation
                 .collect::<Vec<wgpu::RenderBundle>>();
 
             rr.render_pass(
