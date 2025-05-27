@@ -42,6 +42,10 @@ pub struct Mesh {
 }
 
 impl Mesh {
+    pub fn parts_count(&self) -> u32 {
+        self.parts.len() as u32
+    }
+
     pub fn new_quad(device: &wgpu::Device) -> Self {
         Self {
             parts: vec![MeshPart::from_data(
@@ -204,11 +208,10 @@ impl Mesh {
         Mesh { parts }
     }
 
-    pub fn draw<'a>(&'a self, encoder: &mut wgpu::RenderBundleEncoder<'a>) {
-        for part in &self.parts {
-            encoder.set_vertex_buffer(0, part.vertex_buffer.slice(..));
-            encoder.set_index_buffer(part.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
-            encoder.draw_indexed(0..part.num_indices, 0, 0..1);
-        }
+    pub fn draw_part<'a>(&'a self, part: u32, encoder: &mut wgpu::RenderBundleEncoder<'a>) {
+        let part = &self.parts[part as usize];
+        encoder.set_vertex_buffer(0, part.vertex_buffer.slice(..));
+        encoder.set_index_buffer(part.index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        encoder.draw_indexed(0..part.num_indices, 0, 0..1);
     }
 }

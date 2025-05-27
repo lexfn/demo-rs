@@ -82,15 +82,13 @@ impl Material {
             Material::PostProcess(_) => (),
         }
     }
-}
 
-impl render::ApplyMaterial for Material {
-    fn apply<'a>(&'a self, encoder: &mut wgpu::RenderBundleEncoder<'a>) {
+    pub fn inner(&self) -> &render::Material {
         match self {
-            Material::Color(m) => m.apply(encoder),
-            Material::Skybox(m) => m.apply(encoder),
-            Material::Textured(m) => m.apply(encoder),
-            Material::PostProcess(m) => m.apply(encoder),
-        };
+            Material::Color(m) => m,
+            Material::Textured(m) => m,
+            Material::Skybox(m) => m,
+            Material::PostProcess(m) => m,
+        }
     }
 }

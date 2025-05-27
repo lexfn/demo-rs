@@ -7,7 +7,7 @@ mod ui;
 mod vertex;
 
 use crate::math::Mat4;
-pub use material::{ApplyMaterial, Material, MaterialBuilder};
+pub use material::{Material, MaterialBuilder};
 pub use mesh::Mesh;
 pub use render_target::RenderTarget;
 pub use renderer::{Renderer, SurfaceSize};

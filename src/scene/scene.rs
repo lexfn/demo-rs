@@ -153,10 +153,18 @@ impl Scene {
             let bundles = items
                 .into_iter()
                 .map(|(mesh, mats, tr, _)| {
-                    let mat = self.assets.material(mats.first());
+                    let mats = mats
+                        .0
+                        .iter()
+                        .flatten()
+                        .map(|&mat| {
+                            let mat = self.assets.material(mat);
+                            mat.update(rr, cam, cam_tr, tr);
+                            mat.inner()
+                        })
+                        .collect::<Vec<_>>();
                     let mesh = self.assets.mesh(mesh.0);
-                    mat.update(rr, cam, cam_tr, tr);
-                    rr.build_render_bundle(mesh, mat, cam.target().as_ref())
+                    rr.build_render_bundle(mesh, &mats, cam.target().as_ref())
                 })
                 .collect::<Vec<wgpu::RenderBundle>>();
 

@@ -1,12 +1,11 @@
-use std::ops::Deref;
-use std::sync::Arc;
-use wgpu::util::DeviceExt;
-
-use super::material::ApplyMaterial;
+use super::material::Material;
 use super::mesh::Mesh;
 use super::render_target::RenderTarget;
 use super::texture::Texture;
 use super::ui::Ui;
+use std::ops::Deref;
+use std::sync::Arc;
+use wgpu::util::DeviceExt;
 
 pub type SurfaceSize = winit::dpi::PhysicalSize<u32>;
 
@@ -124,12 +123,17 @@ impl<'a> Renderer<'a> {
     pub fn build_render_bundle(
         &self,
         mesh: &Mesh,
-        material: &dyn ApplyMaterial,
+        materials: &[&Material],
         rt: Option<&RenderTarget>,
     ) -> wgpu::RenderBundle {
         let mut encoder = self.new_bundle_encoder(rt);
-        material.apply(&mut encoder);
-        mesh.draw(&mut encoder);
+        for part in 0..mesh.parts_count() {
+            let mat = materials.get(part.clamp(0, (materials.len() - 1).max(0) as u32) as usize);
+            if let Some(mat) = mat {
+                mat.apply(&mut encoder);
+                mesh.draw_part(part, &mut encoder);
+            }
+        }
         encoder.finish(&wgpu::RenderBundleDescriptor { label: None })
     }
 
