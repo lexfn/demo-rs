@@ -62,7 +62,7 @@ impl Scene {
             Camera::new(1.0, components::RENDER_TAG_POST_PROCESS, None),
             Mesh(quad_mesh),
             Material(assets.add_material(material)),
-            RenderOrder(100),
+            RenderOrder(-100),
             RenderTags(components::RENDER_TAG_POST_PROCESS),
         ));
 
@@ -111,11 +111,64 @@ impl Scene {
     }
 
     pub fn render(&mut self, rr: &Renderer) {
-        self.render_with_camera(self.player, rr);
-        self.render_with_camera(self.postprocess, rr);
+        let mut cameras = self
+            .world
+            .query::<(&Camera, &Transform, Option<&RenderOrder>)>();
+        let mut cameras = cameras.iter().collect::<Vec<_>>();
+        cameras.sort_by(|&(_, (.., ro1)), &(_, (.., ro2))| {
+            ro1.unwrap_or(&RenderOrder(0))
+                .0
+                .partial_cmp(&ro2.unwrap_or(&RenderOrder(0)).0)
+                .unwrap()
+        });
+
+        for (_, (cam, cam_tr, _)) in cameras {
+            let mut items = self.world.query::<(
+                &Mesh,
+                &Material,
+                &Transform,
+                Option<&RenderOrder>,
+                Option<&RenderTags>,
+            )>();
+
+            // Pick what should be rendered by the camera
+            let mut items = items
+                .iter()
+                .filter(|(_, (.., tag))| {
+                    cam.should_render(tag.unwrap_or(&RenderTags(RENDER_TAG_SCENE)).0)
+                })
+                .map(|(_, (mesh, material, transform, order, _))| {
+                    (mesh, material, transform, order)
+                })
+                .collect::<Vec<_>>();
+
+            // Sort by render order
+            items.sort_by(|&(.., ro1), &(.., ro2)| {
+                ro1.unwrap_or(&RenderOrder(0))
+                    .0
+                    .partial_cmp(&ro2.unwrap_or(&RenderOrder(0)).0)
+                    .unwrap()
+            });
+
+            let bundles = items
+                .into_iter()
+                .map(|(mesh, mat, tr, _)| {
+                    let mat = self.assets.material(mat.0);
+                    mat.update(rr, cam, cam_tr, tr);
+                    rr.build_render_bundle(self.assets.mesh(mesh.0), mat, cam.target().as_ref())
+                })
+                // TODO Avoid vec allocation
+                .collect::<Vec<wgpu::RenderBundle>>();
+
+            rr.render_pass(
+                &bundles,
+                cam.target().as_ref(),
+                cam.target().is_none().then_some(&mut self.ui),
+            );
+        }
     }
 
-    // TODO Continue adding other stuff until most/all scene initialization is done via the file.
+    // TODO Try to make all initialization to happen via this func.
     pub fn insert_from_cfg(&mut self, cfg: &SceneCfg, state: &AppState) {
         for node in cfg.nodes.values() {
             let pos = node
@@ -267,58 +320,6 @@ impl Scene {
             Material(self.assets.add_material(mat)),
             body,
         ));
-    }
-
-    fn render_with_camera(&mut self, camera: Entity, rr: &Renderer) {
-        if let Some((cam, cam_tr)) = self
-            .world
-            .query_one::<(&Camera, &Transform)>(camera)
-            .unwrap()
-            .get()
-        {
-            let mut items = self.world.query::<(
-                &Mesh,
-                &Material,
-                &Transform,
-                Option<&RenderOrder>,
-                Option<&RenderTags>,
-            )>();
-
-            // Pick what should be rendered by the camera
-            let mut items = items
-                .iter()
-                .filter(|(_, (.., tag))| {
-                    cam.should_render(tag.unwrap_or(&RenderTags(RENDER_TAG_SCENE)).0)
-                })
-                .map(|(_, (mesh, material, transform, order, _))| {
-                    (mesh, material, transform, order)
-                })
-                .collect::<Vec<_>>();
-
-            // Sort by render order
-            items.sort_by(|&(.., o1), &(.., o2)| {
-                o1.unwrap_or(&RenderOrder(0))
-                    .0
-                    .partial_cmp(&o2.unwrap_or(&RenderOrder(0)).0)
-                    .unwrap()
-            });
-
-            let bundles = items
-                .into_iter()
-                .map(|(mesh, mat, tr, _)| {
-                    let mat = self.assets.material(mat.0);
-                    mat.update(rr, cam, cam_tr, tr);
-                    rr.build_render_bundle(self.assets.mesh(mesh.0), mat, cam.target().as_ref())
-                })
-                // TODO Avoid vec allocation
-                .collect::<Vec<wgpu::RenderBundle>>();
-
-            rr.render_pass(
-                &bundles,
-                cam.target().as_ref(),
-                cam.target().is_none().then_some(&mut self.ui),
-            );
-        }
     }
 
     fn sync_physics(&mut self) {
