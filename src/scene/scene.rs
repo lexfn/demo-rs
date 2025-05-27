@@ -126,11 +126,13 @@ impl Scene {
                 .scale
                 .map(|scale| Vec3::from_row_slice(&scale))
                 .unwrap_or(Vec3::from_element(1.0));
-            let e = self.world.spawn((
-                Transform::new(pos, scale),
-                RenderOrder(node.render_order),
-                RenderTags(node.render_tags),
-            ));
+            let e = self.world.spawn((Transform::new(pos, scale),));
+            if let Some(ro) = node.render_order {
+                self.world.insert(e, (RenderOrder(ro),)).unwrap();
+            }
+            if let Some(rt) = node.render_tags {
+                self.world.insert(e, (RenderTags(rt),)).unwrap();
+            }
 
             if let Some(body) = &node.body {
                 let body = RigidBody::cuboid(
@@ -264,8 +266,6 @@ impl Scene {
             Mesh(mesh),
             Material(self.assets.add_material(mat)),
             body,
-            RenderOrder(0),
-            RenderTags(RENDER_TAG_SCENE),
         ));
     }
 
@@ -276,21 +276,32 @@ impl Scene {
             .unwrap()
             .get()
         {
-            let mut items = self
-                .world
-                .query::<(&Mesh, &Material, &Transform, &RenderOrder, &RenderTags)>();
+            let mut items = self.world.query::<(
+                &Mesh,
+                &Material,
+                &Transform,
+                Option<&RenderOrder>,
+                Option<&RenderTags>,
+            )>();
 
             // Pick what should be rendered by the camera
             let mut items = items
                 .iter()
-                .filter(|(_, (.., tag))| cam.should_render(tag.0))
+                .filter(|(_, (.., tag))| {
+                    cam.should_render(tag.unwrap_or(&RenderTags(RENDER_TAG_SCENE)).0)
+                })
                 .map(|(_, (mesh, material, transform, order, _))| {
                     (mesh, material, transform, order)
                 })
                 .collect::<Vec<_>>();
 
             // Sort by render order
-            items.sort_by(|&(.., o1), &(.., o2)| o1.0.partial_cmp(&o2.0).unwrap());
+            items.sort_by(|&(.., o1), &(.., o2)| {
+                o1.unwrap_or(&RenderOrder(0))
+                    .0
+                    .partial_cmp(&o2.unwrap_or(&RenderOrder(0)).0)
+                    .unwrap()
+            });
 
             let bundles = items
                 .into_iter()

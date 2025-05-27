@@ -53,8 +53,8 @@ pub struct NodeMaterialCfg {
 
 #[derive(Deserialize, Debug)]
 pub struct NodeCfg {
-    pub render_order: i32,
-    pub render_tags: u32,
+    pub render_order: Option<i32>,
+    pub render_tags: Option<u32>,
     pub pos: Option<[f32; 3]>,
     pub scale: Option<[f32; 3]>,
     pub body: Option<BodyCfg>,
