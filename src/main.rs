@@ -11,7 +11,9 @@ mod render;
 mod scene;
 mod state;
 mod window;
+
 // TODO Encapsulate/isolate library stuff (e.g. Rapier, wgpu, etc.) from the rest of the code better.
+// TODO First-person controller
 // TODO Spawned boxes should be rotated based on the camera view.
 // TODO Dragging should maintain box rotation relative to the camera.
 // TODO Selected object highlighting.
