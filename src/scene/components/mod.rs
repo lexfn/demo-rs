@@ -21,6 +21,6 @@ pub struct RenderOrder(pub i32);
 pub struct Mesh(pub MeshHandle);
 pub struct Material(pub MaterialHandle);
 
-pub const RENDER_TAG_SCENE: u32 = 0b00000001;
-pub const RENDER_TAG_POST_PROCESS: u32 = 0b00000010;
-pub const RENDER_TAG_HIDDEN: u32 = 0b00000100;
+pub const RENDER_TAG_SCENE: u32 = 0b00000000;
+pub const RENDER_TAG_POST_PROCESS: u32 = 0b00000001;
+pub const RENDER_TAG_HIDDEN: u32 = 0b00000010;

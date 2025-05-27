@@ -62,7 +62,7 @@ impl Scene {
             Camera::new(1.0, components::RENDER_TAG_POST_PROCESS, None),
             Mesh(quad_mesh),
             Material(assets.add_material(material)),
-            RenderOrder(-100),
+            RenderOrder(100),
             RenderTags(components::RENDER_TAG_POST_PROCESS),
         ));
 

@@ -57,7 +57,7 @@ nodes:
       name: red
 
   player_focus_marker:
-    render_tags: 8 # hidden
+    render_tags: 2 # hidden
     mesh:
       prefab: Basis
     material:
