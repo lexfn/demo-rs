@@ -1,6 +1,5 @@
 use hecs::{Entity, World};
 
-use crate::input::InputAction;
 use crate::math::Vec3;
 use crate::physics::Physics;
 use crate::render;
@@ -81,15 +80,15 @@ impl Scene {
     pub fn update(&mut self, dt: f32, state: &AppState, new_canvas_size: &Option<SurfaceSize>) {
         self.physics.update(dt);
 
-        Player::update(dt, &mut self.world, &mut self.physics, state);
+        Player::update(
+            dt,
+            &mut self.world,
+            &mut self.physics,
+            state,
+            &mut self.assets,
+        );
         Grab::update(&mut self.world, &state.input, &mut self.physics);
         PlayerFocusMarker::update(&mut self.world);
-
-        if state.input.action_activated(InputAction::Spawn) {
-            let player_tr = self.world.query_one_mut::<&Transform>(self.player).unwrap();
-            let pos = player_tr.position() + player_tr.forward().xyz() * 5.0;
-            self.spawn_box(pos, Vec3::from_element(1.0), &state.renderer);
-        }
 
         self.sync_physics();
 
@@ -322,26 +321,6 @@ impl Scene {
         let new_mat =
             materials::Material::post_process(&state.renderer, &mut self.assets, color_tex);
         mats.0[0] = Some(self.assets.add_material(new_mat));
-    }
-
-    // TODO Move to Player?
-    fn spawn_box(&mut self, pos: Vec3, scale: Vec3, rr: &Renderer) {
-        let body = RigidBody::cuboid(
-            components::RigidBodyParams {
-                pos,
-                scale,
-                movable: true,
-            },
-            &mut self.physics,
-        );
-        let mat = materials::Material::textured(rr, &mut self.assets, "crate.png");
-        let mesh = self.assets.mesh_handle(Self::MESH_KEY_BOX);
-        self.world.spawn((
-            Transform::new(pos, scale),
-            Mesh(mesh),
-            Materials([Some(self.assets.add_material(mat)), None, None, None]),
-            body,
-        ));
     }
 
     fn sync_physics(&mut self) {

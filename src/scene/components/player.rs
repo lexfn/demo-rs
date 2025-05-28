@@ -1,18 +1,19 @@
 use std::f32::consts::PI;
 
-use hecs::{Entity, World};
+use hecs::{DynamicBundle, Entity, World};
 
 use crate::input::{Input, InputAction};
 use crate::math::{to_point3, Ray, Vec2, Vec3};
 use crate::physics::{ColliderBuilder, ColliderHandle, Physics, RayCastResult, RigidBodyHandle};
 use crate::render::RenderTarget;
 use crate::render::Renderer;
+use crate::scene::{components, materials, Assets};
 use crate::state::AppState;
 use crate::window::Window;
 
 use super::camera::Camera;
 use super::transform::{Transform, TransformSpace};
-use super::RENDER_TAG_SCENE;
+use super::{Materials, Mesh, RigidBody, RENDER_TAG_SCENE};
 
 #[derive(Copy, Clone)]
 pub struct PlayerFocus {
@@ -76,7 +77,14 @@ impl Player {
         self.focus
     }
 
-    pub fn update(dt: f32, world: &mut World, physics: &mut Physics, state: &AppState) {
+    // TODO Introduce "scene state" or smth and pass it instead of the world/physics/assets tuple.
+    pub fn update(
+        dt: f32,
+        world: &mut World,
+        physics: &mut Physics,
+        state: &AppState,
+        assets: &mut Assets,
+    ) {
         let (_, (tr, cam, this)) = world
             .query_mut::<(&mut Transform, &mut Camera, &mut Player)>()
             .into_iter()
@@ -97,6 +105,36 @@ impl Player {
         }
 
         this.update_focus(tr, cam, state, physics);
+
+        if this.controlled && state.input.action_activated(InputAction::Spawn) {
+            let pos = tr.position() + tr.forward().xyz() * 5.0;
+            world.spawn(Self::spawn_box(pos, &state.renderer, physics, assets));
+        }
+    }
+
+    fn spawn_box(
+        pos: Vec3,
+        rr: &Renderer,
+        physics: &mut Physics,
+        assets: &mut Assets,
+    ) -> impl DynamicBundle {
+        let scale = Vec3::from_element(1.0);
+        let body = RigidBody::cuboid(
+            components::RigidBodyParams {
+                pos,
+                scale,
+                movable: true,
+            },
+            physics,
+        );
+        let mat = materials::Material::textured(rr, assets, "crate.png");
+        let mesh = assets.mesh_handle("cube.obj"); // TODO Reuse some constant
+        (
+            Transform::new(pos, scale),
+            Mesh(mesh),
+            Materials([Some(assets.add_material(mat)), None, None, None]),
+            body,
+        )
     }
 
     fn translate(
