@@ -25,6 +25,12 @@ materials:
     texture: skybox_bgra.dds
 
 nodes:
+  monkey:
+    pos: [ 5, 3, -5 ]
+    mesh:
+      path: monkey.obj
+    materials: [ bricks ]
+
   floor:
     scale: [ 10, 0.5, 10 ]
     body:
