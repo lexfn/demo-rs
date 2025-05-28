@@ -12,13 +12,12 @@ mod scene;
 mod state;
 mod window;
 
-// TODO Multi-material meshes (e.g. for the basis axes to have different colors).
 // TODO Encapsulate/isolate library stuff (e.g. Rapier, wgpu, etc.) from the rest of the code better.
-// TODO First-person controller
+// TODO First-person controller.
 // TODO Spawned boxes should be rotated based on the camera view.
 // TODO Dragging should maintain box rotation relative to the camera.
 // TODO Selected object highlighting.
-// TODO Gizmos (e.g. axes instead of a box representing the player's target)
+// TODO Gizmos (e.g. axes instead of a box representing the player's target).
 // TODO Switch to raw Vulkan and/or introduce it as a separate backend. wgpu has an unstable API.
 
 fn main() {
