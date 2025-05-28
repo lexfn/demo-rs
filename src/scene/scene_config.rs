@@ -69,14 +69,3 @@ impl SceneCfg {
         serde_yaml::from_str::<SceneCfg>(yaml).unwrap()
     }
 }
-
-mod tests {
-    use super::*;
-
-    #[test]
-    fn smoke() {
-        let cfg = String::from_utf8_lossy(include_bytes!("../../assets/scene.yml"));
-        let config = serde_yaml::from_str::<SceneCfg>(&cfg).unwrap();
-        println!("{:?}", config);
-    }
-}
