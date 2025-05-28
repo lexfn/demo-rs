@@ -6,7 +6,6 @@ use crate::render::Texture;
 use futures_lite::future;
 use slotmap::{DefaultKey, SlotMap};
 use std::collections::HashMap;
-use ulid::Ulid;
 
 pub type MeshHandle = DefaultKey;
 pub type MaterialHandle = DefaultKey;
@@ -57,9 +56,8 @@ impl Assets {
         self.meshes.get(handle).unwrap()
     }
 
-    pub fn add_mesh(&mut self, mesh: Mesh, key: Option<&str>) -> MeshHandle {
-        let rand_key = Ulid::new().to_string();
-        self.add_mesh_impl(key.unwrap_or(&rand_key), || mesh)
+    pub fn add_mesh(&mut self, mesh: Mesh, key: &str) -> MeshHandle {
+        self.add_mesh_impl(key, || mesh)
     }
 
     pub fn add_mesh_from_file(&mut self, rr: &Renderer, path: &str) -> MeshHandle {

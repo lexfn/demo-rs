@@ -43,11 +43,6 @@ impl Scene {
             Vec3::new(7.0, 7.0, 7.0),
         );
 
-        let quad_mesh = assets.add_mesh(
-            render::Mesh::new_quad(&state.renderer),
-            Some(Self::MESH_KEY_QUAD),
-        );
-
         // Post-processor
         let pp_src_tex = world
             .query_one_mut::<&Camera>(player)
@@ -57,10 +52,11 @@ impl Scene {
             .unwrap()
             .color_texture();
         let material = materials::Material::post_process(&state.renderer, &mut assets, pp_src_tex);
+        let mesh = assets.add_mesh(render::Mesh::new_quad(&state.renderer), Self::MESH_KEY_QUAD);
         let postprocess = world.spawn((
             Transform::default(),
             Camera::new(1.0, components::RENDER_TAG_POST_PROCESS, None),
-            Mesh(quad_mesh),
+            Mesh(mesh),
             Materials::single(assets.add_material(material)),
             RenderOrder(100),
             RenderTags(components::RENDER_TAG_POST_PROCESS),
@@ -212,13 +208,12 @@ impl Scene {
                     self.assets.add_mesh_from_file(&state.renderer, path)
                 } else if let Some(prefab) = &mesh.prefab {
                     match prefab {
-                        MeshPrefabCfg::Quad => self.assets.add_mesh(
-                            render::Mesh::new_quad(&state.renderer),
-                            Some(Self::MESH_KEY_QUAD),
-                        ),
+                        MeshPrefabCfg::Quad => self
+                            .assets
+                            .add_mesh(render::Mesh::new_quad(&state.renderer), Self::MESH_KEY_QUAD),
                         MeshPrefabCfg::Basis => self.assets.add_mesh(
                             render::Mesh::new_basis(&state.renderer),
-                            Some(Self::MESH_KEY_BASIS),
+                            Self::MESH_KEY_BASIS,
                         ),
                     }
                 } else {
@@ -310,6 +305,7 @@ impl Scene {
     // TODO Iterate over any camera, check its target and if it's configured to match the screen
     // size then resize it.
     fn resize(&mut self, state: &AppState, new_size: &SurfaceSize) {
+        // Resize player camera and its RT
         let mut player_cam = self.world.get::<&mut Camera>(self.player).unwrap();
         player_cam.set_aspect(new_size.width as f32 / new_size.height as f32);
         player_cam
@@ -317,6 +313,7 @@ impl Scene {
             .unwrap()
             .resize((new_size.width, new_size.height), &state.renderer);
 
+        // Resize post-processor
         let mut mats = self.world.get::<&mut Materials>(self.postprocess).unwrap();
         self.assets
             .remove_material(mats.0.get_mut(0).unwrap().unwrap());
