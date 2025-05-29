@@ -8,8 +8,8 @@ use crate::state::AppState;
 
 use super::assets::Assets;
 use super::components::{
-    Camera, Grab, Hud, Materials, Mesh, Player, PlayerFocusMarker, RenderOrder, RenderTags,
-    RigidBody, Transform, RENDER_TAG_SCENE,
+    Camera, Grab, Hud, Materials, Mesh, Player, PlayerFocusMarker, PostProcess, RenderOrder,
+    RenderTags, RigidBody, Transform, RENDER_TAG_SCENE,
 };
 use super::scene_config::{ComponentCfg, MaterialCfg, MeshPrefabCfg, SceneCfg};
 use super::{components, materials};
@@ -17,7 +17,6 @@ use super::{components, materials};
 pub struct Scene {
     world: World,
     physics: Physics,
-    postprocess: Entity,
     player: Entity,
     hud: Entity,
     ui: Ui,
@@ -42,24 +41,7 @@ impl Scene {
             Vec3::new(7.0, 7.0, 7.0),
         );
 
-        // Post-processor
-        let pp_src_tex = world
-            .query_one_mut::<&Camera>(player)
-            .unwrap()
-            .target()
-            .as_ref()
-            .unwrap()
-            .color_texture();
-        let material = materials::Material::post_process(&state.renderer, &mut assets, pp_src_tex);
-        let mesh = assets.add_mesh(render::Mesh::new_quad(&state.renderer), Self::MESH_KEY_QUAD);
-        let postprocess = world.spawn((
-            Transform::default(),
-            Camera::new(1.0, components::RENDER_TAG_POST_PROCESS, None),
-            Mesh(mesh),
-            Materials::single(assets.add_material(material)),
-            RenderOrder(100),
-            RenderTags(components::RENDER_TAG_POST_PROCESS),
-        ));
+        PostProcess::spawn(&mut world, &state.renderer, &mut assets);
 
         let hud = world.spawn((Hud,));
         let ui = Ui::new(&state.window, &state.renderer);
@@ -70,7 +52,6 @@ impl Scene {
             world,
             physics,
             player,
-            postprocess,
             hud,
             ui,
             assets,
@@ -305,22 +286,16 @@ impl Scene {
     // size then resize it.
     fn resize(&mut self, state: &AppState, new_size: &SurfaceSize) {
         // Resize player camera and its RT
-        let mut player_cam = self.world.get::<&mut Camera>(self.player).unwrap();
-        player_cam.set_aspect(new_size.width as f32 / new_size.height as f32);
-        player_cam
-            .target_mut()
-            .unwrap()
-            .resize((new_size.width, new_size.height), &state.renderer);
+        {
+            let mut player_cam = self.world.get::<&mut Camera>(self.player).unwrap();
+            player_cam.set_aspect(new_size.width as f32 / new_size.height as f32);
+            player_cam
+                .target_mut()
+                .unwrap()
+                .resize((new_size.width, new_size.height), &state.renderer);
+        }
 
-        // Resize post-processor
-        let mut mats = self.world.get::<&mut Materials>(self.postprocess).unwrap();
-        self.assets
-            .remove_material(mats.0.get_mut(0).unwrap().unwrap());
-
-        let color_tex = player_cam.target().as_ref().unwrap().color_texture();
-        let new_mat =
-            materials::Material::post_process(&state.renderer, &mut self.assets, color_tex);
-        mats.0[0] = Some(self.assets.add_material(new_mat));
+        PostProcess::update(&mut self.world, &state.renderer, &mut self.assets);
     }
 
     fn sync_physics(&mut self) {

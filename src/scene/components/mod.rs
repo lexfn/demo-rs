@@ -3,6 +3,7 @@ mod grab;
 mod hud;
 mod player;
 mod player_focus_marker;
+mod post_process;
 mod rigid_body;
 mod transform;
 
@@ -11,6 +12,7 @@ pub use grab::Grab;
 pub use hud::Hud;
 pub use player::Player;
 pub use player_focus_marker::PlayerFocusMarker;
+pub use post_process::PostProcess;
 pub use rigid_body::{RigidBody, RigidBodyParams};
 pub use transform::Transform;
 

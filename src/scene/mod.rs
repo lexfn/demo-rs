@@ -1,6 +1,6 @@
 mod assets;
 mod components;
-pub mod materials;
+mod materials;
 mod scene;
 mod scene_config;
 
