@@ -5,8 +5,8 @@ use hecs::{DynamicBundle, World};
 use crate::input::{Input, InputAction};
 use crate::math::{to_point3, Ray, Vec2, Vec3};
 use crate::physics::{ColliderBuilder, ColliderHandle, Physics, RayCastResult, RigidBodyHandle};
+use crate::render::RenderTarget;
 use crate::render::Renderer;
-use crate::render::{RenderTarget, SurfaceSize};
 use crate::scene::{components, materials, Assets};
 use crate::state::AppState;
 use crate::window::Window;
@@ -80,11 +80,10 @@ impl Player {
     // TODO Introduce "scene state" or smth and pass it instead of the world/physics/assets tuple.
     pub fn update(
         dt: f32,
+        state: &AppState,
         w: &mut World,
         physics: &mut Physics,
-        state: &AppState,
         assets: &mut Assets,
-        new_surface_size: Option<SurfaceSize>,
     ) {
         let (_, (tr, cam, this)) = w
             .query_mut::<(&mut Transform, &mut Camera, &mut Player)>()
@@ -92,7 +91,7 @@ impl Player {
             .next()
             .unwrap();
 
-        if let Some(new_size) = new_surface_size {
+        if let Some(new_size) = state.new_surface_size {
             cam.set_aspect(new_size.width as f32 / new_size.height as f32);
             cam.target_mut()
                 .unwrap()

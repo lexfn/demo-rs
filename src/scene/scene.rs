@@ -3,7 +3,7 @@ use hecs::{Entity, World};
 use crate::math::Vec3;
 use crate::physics::Physics;
 use crate::render;
-use crate::render::{Renderer, SurfaceSize, Ui};
+use crate::render::{Renderer, Ui};
 use crate::state::AppState;
 
 use super::assets::Assets;
@@ -54,16 +54,15 @@ impl Scene {
         }
     }
 
-    pub fn update(&mut self, dt: f32, state: &AppState, new_surface_size: &Option<SurfaceSize>) {
+    pub fn update(&mut self, dt: f32, state: &AppState) {
         self.physics.update(dt);
 
         Player::update(
             dt,
+            state,
             &mut self.world,
             &mut self.physics,
-            state,
             &mut self.assets,
-            *new_surface_size,
         );
         Grab::update(&mut self.world, &state.input, &mut self.physics);
         PlayerFocusMarker::update(&mut self.world);
@@ -279,8 +278,8 @@ impl Scene {
     }
 
     fn sync_physics(&mut self) {
-        for (_, (t, b)) in self.world.query_mut::<(&mut Transform, &RigidBody)>() {
-            let body = self.physics.body(b.handle());
+        for (_, (t, body)) in self.world.query_mut::<(&mut Transform, &RigidBody)>() {
+            let body = self.physics.body(body.handle());
             t.set(*body.translation(), *body.rotation().inverse().quaternion());
         }
     }
