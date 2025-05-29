@@ -5,8 +5,8 @@ use hecs::{DynamicBundle, Entity, World};
 use crate::input::{Input, InputAction};
 use crate::math::{to_point3, Ray, Vec2, Vec3};
 use crate::physics::{ColliderBuilder, ColliderHandle, Physics, RayCastResult, RigidBodyHandle};
-use crate::render::RenderTarget;
 use crate::render::Renderer;
+use crate::render::{RenderTarget, SurfaceSize};
 use crate::scene::{components, materials, Assets};
 use crate::state::AppState;
 use crate::window::Window;
@@ -80,16 +80,24 @@ impl Player {
     // TODO Introduce "scene state" or smth and pass it instead of the world/physics/assets tuple.
     pub fn update(
         dt: f32,
-        world: &mut World,
+        w: &mut World,
         physics: &mut Physics,
         state: &AppState,
         assets: &mut Assets,
+        new_surface_size: Option<SurfaceSize>,
     ) {
-        let (_, (tr, cam, this)) = world
+        let (_, (tr, cam, this)) = w
             .query_mut::<(&mut Transform, &mut Camera, &mut Player)>()
             .into_iter()
             .next()
             .unwrap();
+
+        if let Some(new_size) = new_surface_size {
+            cam.set_aspect(new_size.width as f32 / new_size.height as f32);
+            cam.target_mut()
+                .unwrap()
+                .resize((new_size.width, new_size.height), &state.renderer);
+        }
 
         // Move and rotate
         if this.controlled {
@@ -108,7 +116,7 @@ impl Player {
 
         if this.controlled && state.input.action_activated(InputAction::Spawn) {
             let pos = tr.position() + tr.forward().xyz() * 5.0;
-            world.spawn(Self::spawn_box(pos, &state.renderer, physics, assets));
+            w.spawn(Self::spawn_box(pos, &state.renderer, physics, assets));
         }
     }
 

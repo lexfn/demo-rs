@@ -18,7 +18,7 @@ pub struct App<'a> {
     state: Option<AppState<'a>>,
     scene: Option<Scene>,
     frame_time: Option<FrameTime>,
-    new_canvas_size: Option<SurfaceSize>,
+    new_surface_size: Option<SurfaceSize>,
 }
 
 impl App<'_> {
@@ -33,9 +33,9 @@ impl App<'_> {
 
         let dt = self.frame_time.as_mut().unwrap().advance();
 
-        state.renderer.resize(self.new_canvas_size);
+        state.renderer.resize(self.new_surface_size);
 
-        scene.update(dt, &state, &self.new_canvas_size);
+        scene.update(dt, &state, &self.new_surface_size);
         scene.render(&state.renderer);
 
         state.input.clear();
@@ -43,7 +43,7 @@ impl App<'_> {
 
         self.state = Some(state);
         self.scene = Some(scene);
-        self.new_canvas_size = None;
+        self.new_surface_size = None;
     }
 }
 
@@ -101,7 +101,7 @@ impl ApplicationHandler for App<'_> {
 
         match &event {
             WindowEvent::RedrawRequested => self.update_and_render(event_loop),
-            WindowEvent::Resized(size) => self.new_canvas_size = Some(*size),
+            WindowEvent::Resized(size) => self.new_surface_size = Some(*size),
             WindowEvent::CloseRequested => event_loop.exit(),
             _ => {}
         }

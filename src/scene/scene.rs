@@ -58,7 +58,7 @@ impl Scene {
         }
     }
 
-    pub fn update(&mut self, dt: f32, state: &AppState, new_canvas_size: &Option<SurfaceSize>) {
+    pub fn update(&mut self, dt: f32, state: &AppState, new_surface_size: &Option<SurfaceSize>) {
         self.physics.update(dt);
 
         Player::update(
@@ -67,19 +67,19 @@ impl Scene {
             &mut self.physics,
             state,
             &mut self.assets,
+            *new_surface_size,
         );
         Grab::update(&mut self.world, &state.input, &mut self.physics);
         PlayerFocusMarker::update(&mut self.world);
+        PostProcess::update(&mut self.world, &state.renderer, &mut self.assets);
 
         self.sync_physics();
-
-        if let Some(new_size) = new_canvas_size {
-            self.resize(state, new_size);
-        }
 
         for e in state.input.new_raw_events() {
             self.ui.handle_event(e, &state.window);
         }
+
+        // TODO Move to Hud
         self.world
             .query_one_mut::<&mut Hud>(self.hud)
             .unwrap()
@@ -280,22 +280,6 @@ impl Scene {
                 }
             }
         }
-    }
-
-    // TODO Iterate over any camera, check its target and if it's configured to match the screen
-    // size then resize it.
-    fn resize(&mut self, state: &AppState, new_size: &SurfaceSize) {
-        // Resize player camera and its RT
-        {
-            let mut player_cam = self.world.get::<&mut Camera>(self.player).unwrap();
-            player_cam.set_aspect(new_size.width as f32 / new_size.height as f32);
-            player_cam
-                .target_mut()
-                .unwrap()
-                .resize((new_size.width, new_size.height), &state.renderer);
-        }
-
-        PostProcess::update(&mut self.world, &state.renderer, &mut self.assets);
     }
 
     fn sync_physics(&mut self) {
