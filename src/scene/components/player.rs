@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use hecs::{DynamicBundle, Entity, World};
+use hecs::{DynamicBundle, World};
 
 use crate::input::{Input, InputAction};
 use crate::math::{to_point3, Ray, Vec2, Vec3};
@@ -39,7 +39,7 @@ impl Player {
     const MIN_BOTTOM_ANGLE: f32 = PI - 0.1;
     const ROTATION_SPEED: f32 = 0.003;
 
-    pub fn spawn(w: &mut World, rr: &Renderer, physics: &mut Physics, position: Vec3) -> Entity {
+    pub fn spawn(w: &mut World, rr: &Renderer, physics: &mut Physics, position: Vec3) {
         let camera = Camera::new(
             rr.surface_size().width as f32 / rr.surface_size().height as f32,
             RENDER_TAG_SCENE,
@@ -66,7 +66,7 @@ impl Player {
             },
             camera,
             tr,
-        ))
+        ));
     }
 
     pub fn focus_ray(&self) -> Option<Ray> {

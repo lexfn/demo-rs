@@ -17,7 +17,6 @@ use super::{components, materials};
 pub struct Scene {
     world: World,
     physics: Physics,
-    player: Entity,
     hud: Entity,
     ui: Ui,
     assets: Assets,
@@ -33,14 +32,12 @@ impl Scene {
         let mut world = World::new();
         let mut physics = Physics::new();
 
-        // Player
-        let player = Player::spawn(
+        Player::spawn(
             &mut world,
             &state.renderer,
             &mut physics,
             Vec3::new(7.0, 7.0, 7.0),
         );
-
         PostProcess::spawn(&mut world, &state.renderer, &mut assets);
 
         let hud = world.spawn((Hud,));
@@ -51,7 +48,6 @@ impl Scene {
         Self {
             world,
             physics,
-            player,
             hud,
             ui,
             assets,
