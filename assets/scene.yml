@@ -9,6 +9,15 @@ materials:
     name: red
     color: [ 1, 0, 0 ]
   - !Color
+    name: green
+    color: [ 0, 1, 0 ]
+  - !Color
+    name: blue
+    color: [ 0, 0, 1 ]
+  - !Color
+    name: white
+    color: [ 1, 1, 1 ]
+  - !Color
     name: red_wireframe
     wireframe: true
     color: [ 1, 0, 0 ]
@@ -30,6 +39,13 @@ nodes:
     mesh:
       path: monkey.obj
     materials: [ bricks ]
+
+  axes:
+    pos: [ 0, 5, 0 ]
+    scale: [ 0.1, 0.1, 0.1 ]
+    mesh:
+      path: axes.obj
+    materials: [ white, red, green, blue ]
 
   floor:
     scale: [ 10, 0.5, 10 ]
