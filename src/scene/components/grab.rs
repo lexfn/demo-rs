@@ -37,31 +37,32 @@ impl Grab {
         };
 
         if input.action_activated(InputAction::Grab) {
-            if world.query::<&Grab>().iter().next().is_none() {
-                if let Some(player_focus) = player_focus {
-                    let body_entity = {
-                        let mut q = world.query::<&RigidBody>();
-                        let (body_entity, body) = q
-                            .into_iter()
-                            .find(|(_, body)| body.handle() == player_focus.body)
-                            .unwrap();
-                        body.set_kinematic(physics, true);
-                        body_entity
-                    };
-                    let body = physics.body_mut(player_focus.body);
-                    let offset = *body.translation() - player_focus.point;
-                    world
-                        .insert(
-                            body_entity,
-                            (Grab {
-                                distance: player_focus.distance,
-                                offset,
-                            },),
-                        )
-                        .unwrap();
-                }
-            } else {
+            if world.query::<&Grab>().iter().next().is_some() {
                 release_grab(world, physics);
+                return;
+            }
+
+            if let Some(player_focus) = player_focus {
+                let body_entity = {
+                    let mut q = world.query::<&RigidBody>();
+                    let (body_entity, body) = q
+                        .into_iter()
+                        .find(|(_, body)| body.handle() == player_focus.body)
+                        .unwrap();
+                    body.set_kinematic(physics, true);
+                    body_entity
+                };
+                let body = physics.body_mut(player_focus.body);
+                let offset = *body.translation() - player_focus.point;
+                world
+                    .insert(
+                        body_entity,
+                        (Grab {
+                            distance: player_focus.distance,
+                            offset,
+                        },),
+                    )
+                    .unwrap();
             }
         }
 
