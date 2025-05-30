@@ -34,7 +34,7 @@ impl App<'_> {
 
         state.renderer.resize(state.new_surface_size);
 
-        scene.update(dt, &state, state.new_surface_size);
+        scene.update(dt, &state);
         scene.render(&state.renderer);
 
         state.input.clear();
