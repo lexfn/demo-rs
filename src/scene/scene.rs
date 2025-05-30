@@ -1,4 +1,4 @@
-use hecs::{Entity, World};
+use hecs::World;
 
 use crate::math::Vec3;
 use crate::physics::Physics;
@@ -17,7 +17,6 @@ use super::{components, materials};
 pub struct Scene {
     world: World,
     physics: Physics,
-    hud: Entity,
     ui: Ui,
     assets: Assets,
 }
@@ -25,7 +24,6 @@ pub struct Scene {
 impl Scene {
     const MESH_KEY_BASIS: &'static str = "basis";
     const MESH_KEY_QUAD: &'static str = "quad";
-    const MESH_KEY_BOX: &'static str = "cube.obj";
 
     pub fn new(state: &AppState) -> Self {
         let mut assets = Assets::new();
@@ -40,15 +38,11 @@ impl Scene {
         );
         PostProcess::spawn(&mut world, &state.renderer, &mut assets);
 
-        let hud = world.spawn((Hud,));
         let ui = Ui::new(&state.window, &state.renderer);
-
-        assets.add_mesh_from_file(&state.renderer, Self::MESH_KEY_BOX);
 
         Self {
             world,
             physics,
-            hud,
             ui,
             assets,
         }
@@ -74,11 +68,7 @@ impl Scene {
             self.ui.handle_event(e, &state.window);
         }
 
-        // TODO Move to Hud
-        self.world
-            .query_one_mut::<&mut Hud>(self.hud)
-            .unwrap()
-            .build(dt, state, &mut self.ui);
+        Hud::update(dt, state, &mut self.ui);
     }
 
     pub fn render(&mut self, rr: &Renderer) {
