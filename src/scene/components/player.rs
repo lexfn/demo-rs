@@ -172,17 +172,15 @@ impl Player {
             translation -= transform.up();
         }
 
-        // Apply only if there's anything to apply. Otherwise getting NaN after normalize() :|
-        if translation.magnitude() > 0.01 {
-            self.translation_acc += translation.normalize() * dt * Self::SPEED;
+        if translation.magnitude() < 0.01 {
+            return;
         }
 
-        let (possible_translation, collider_current_pos) =
-            physics.move_character(dt, self.translation_acc, self.collider);
-        self.translation_acc = possible_translation;
+        translation = translation.normalize() * dt * Self::SPEED;
 
-        let translation = Self::SPEED * dt * self.translation_acc;
-        self.translation_acc -= translation;
+        let (possible_translation, collider_current_pos) =
+            physics.move_character(dt, translation, self.collider);
+        translation = possible_translation;
 
         transform.translate(translation);
         physics
