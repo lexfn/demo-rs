@@ -198,43 +198,35 @@ impl Scene {
                                 name,
                                 color: [r, g, b],
                                 wireframe,
-                            } => {
-                                if name == mat_name {
-                                    let mat = materials::Material::color(
-                                        &state.renderer,
-                                        &mut self.assets,
-                                        Vec3::new(*r, *g, *b),
-                                        wireframe.unwrap_or(false),
-                                    );
-                                    Some(self.assets.add_material(mat))
-                                } else {
-                                    None
-                                }
+                            } if name == mat_name => {
+                                let mat = materials::Material::color(
+                                    &state.renderer,
+                                    &mut self.assets,
+                                    Vec3::new(*r, *g, *b),
+                                    wireframe.unwrap_or(false),
+                                );
+                                Some(self.assets.add_material(mat))
                             }
-                            MaterialCfg::Textured { name, texture } => {
-                                if name == mat_name {
-                                    let mat = materials::Material::textured(
-                                        &state.renderer,
-                                        &mut self.assets,
-                                        texture,
-                                    );
-                                    Some(self.assets.add_material(mat))
-                                } else {
-                                    None
-                                }
+
+                            MaterialCfg::Textured { name, texture } if name == mat_name => {
+                                let mat = materials::Material::textured(
+                                    &state.renderer,
+                                    &mut self.assets,
+                                    texture,
+                                );
+                                Some(self.assets.add_material(mat))
                             }
-                            MaterialCfg::Skybox { name, texture } => {
-                                if name == mat_name {
-                                    let mat = materials::Material::skybox(
-                                        &state.renderer,
-                                        &mut self.assets,
-                                        texture,
-                                    );
-                                    Some(self.assets.add_material(mat))
-                                } else {
-                                    None
-                                }
+
+                            MaterialCfg::Skybox { name, texture } if name == mat_name => {
+                                let mat = materials::Material::skybox(
+                                    &state.renderer,
+                                    &mut self.assets,
+                                    texture,
+                                );
+                                Some(self.assets.add_material(mat))
                             }
+
+                            _ => None,
                         })
                     })
                     .take(4) // Max supported materials at the moment.
