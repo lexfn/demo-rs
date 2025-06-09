@@ -115,12 +115,14 @@ impl Player {
 
         if this.controlled && state.input.action_activated(InputAction::Spawn) {
             let pos = tr.position() + tr.forward().xyz() * 5.0;
-            w.spawn(Self::spawn_box(pos, &state.renderer, physics, assets));
+            let rot = tr.rotation_angles();
+            w.spawn(Self::spawn_box(pos, rot, &state.renderer, physics, assets));
         }
     }
 
     fn spawn_box(
         pos: Vec3,
+        rotation: Vec3,
         rr: &Renderer,
         physics: &mut Physics,
         assets: &mut Assets,
@@ -129,6 +131,7 @@ impl Player {
         let body = RigidBody::cuboid(
             components::RigidBodyParams {
                 pos,
+                rotation,
                 scale,
                 movable: true,
             },

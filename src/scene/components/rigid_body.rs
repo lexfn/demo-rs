@@ -3,6 +3,7 @@ use crate::physics::{ColliderBuilder, Physics, RigidBodyBuilder, RigidBodyHandle
 
 pub struct RigidBodyParams {
     pub pos: Vec3,
+    pub rotation: Vec3,
     pub scale: Vec3,
     pub movable: bool,
 }
@@ -16,12 +17,14 @@ impl RigidBody {
     pub fn cuboid(params: RigidBodyParams, physics: &mut Physics) -> Self {
         let RigidBodyParams {
             pos,
+            rotation,
             scale,
             movable,
         } = params;
 
         let body = RigidBodyBuilder::new(body_type(movable))
             .translation(Vec3::new(pos.x, pos.y, pos.z))
+            .rotation(Vec3::new(rotation.x, 0.0, 0.0))
             .build();
         let collider = ColliderBuilder::cuboid(scale.x, scale.y, scale.z)
             .restitution(0.2)

@@ -47,8 +47,15 @@ impl Transform {
         self.m.column(1).xyz()
     }
 
+    // TODO This should be taken from the matrix, otherwise if this transformed is synced from
+    // a rigid body then self.pos and other fields will get outdated.
     pub fn position(&self) -> Vec3 {
         self.pos
+    }
+
+    pub fn rotation_angles(&self) -> Vec3 {
+        let (x, y, z) = self.rot.euler_angles();
+        Vec3::new(x, y, z)
     }
 
     pub fn look_at(&mut self, target: Vec3) {

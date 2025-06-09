@@ -157,6 +157,7 @@ impl Scene {
                 let body = RigidBody::cuboid(
                     components::RigidBodyParams {
                         pos,
+                        rotation: Vec3::zeros(),
                         scale,
                         movable: body.movable.unwrap_or(true),
                     },
