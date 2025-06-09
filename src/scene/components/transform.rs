@@ -54,8 +54,7 @@ impl Transform {
     }
 
     pub fn rotation_angles(&self) -> Vec3 {
-        let (x, y, z) = self.rot.euler_angles();
-        Vec3::new(x, y, z)
+        self.rot.scaled_axis()
     }
 
     pub fn look_at(&mut self, target: Vec3) {
