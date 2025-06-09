@@ -24,7 +24,7 @@ impl RigidBody {
 
         let body = RigidBodyBuilder::new(body_type(movable))
             .translation(Vec3::new(pos.x, pos.y, pos.z))
-            .rotation(Vec3::new(rotation.x, 0.0, 0.0))
+            .rotation(rotation)
             .build();
         let collider = ColliderBuilder::cuboid(scale.x, scale.y, scale.z)
             .restitution(0.2)
