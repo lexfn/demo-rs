@@ -22,9 +22,6 @@ pub struct Scene {
 }
 
 impl Scene {
-    const MESH_KEY_BASIS: &'static str = "basis";
-    const MESH_KEY_QUAD: &'static str = "quad";
-
     pub fn new(state: &AppState) -> Self {
         let mut assets = Assets::new();
         let mut world = World::new();
@@ -175,11 +172,10 @@ impl Scene {
                     match prefab {
                         MeshPrefabCfg::Quad => self
                             .assets
-                            .add_mesh(render::Mesh::new_quad(&state.renderer), Self::MESH_KEY_QUAD),
-                        MeshPrefabCfg::Basis => self.assets.add_mesh(
-                            render::Mesh::new_basis(&state.renderer),
-                            Self::MESH_KEY_BASIS,
-                        ),
+                            .add_mesh(render::Mesh::new_quad(&state.renderer), "quad"),
+                        MeshPrefabCfg::Basis => self
+                            .assets
+                            .add_mesh(render::Mesh::new_basis(&state.renderer), "basis"),
                     }
                 } else {
                     panic!("Unable to create mesh");
