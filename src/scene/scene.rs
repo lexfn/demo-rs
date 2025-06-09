@@ -65,7 +65,7 @@ impl Scene {
             self.ui.handle_event(e, &state.window);
         }
 
-        Hud::update(dt, state, &mut self.ui);
+        Hud::update(dt, &mut self.world, state, &mut self.ui);
     }
 
     pub fn render(&mut self, rr: &Renderer) {
