@@ -13,7 +13,7 @@ is pretty low level and abstractions are built along the way when needed.
 cargo run
 ```
 
-Tested and _should_ work on macOS, Windows and Linux 🙈
+Tested and _should_ work on macOS, Windows and Linux.
 
 ## Features
 
