@@ -26,7 +26,7 @@ impl Material {
     }
 
     pub fn post_process(rr: &Renderer, assets: &mut Assets, src_texture: &Texture) -> Self {
-        let shader = assets.add_shader_from_file(rr, "post-process.wgsl");
+        let shader = assets.add_shader_from_file(rr, "post_process.wgsl");
         let material = MaterialBuilder::new()
             .with_2d_texture(rr, src_texture)
             // TODO We shouldn't call assets again to get the actual objects, they should be returned
