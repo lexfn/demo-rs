@@ -5,7 +5,7 @@ A simple graphics demo where you can fly around, spawn boxes and move them.
 I made this project to learn Rust and try it in game development. There is no attempt to create an "engine", everything
 is pretty low level and abstractions are built along the way when needed.
 
-![Demo](/screenshot.png?raw=true)
+![Demo](/screenshot.jpeg?raw=true)
 
 ## Building and running
 
