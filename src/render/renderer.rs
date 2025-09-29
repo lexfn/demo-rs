@@ -291,7 +291,10 @@ impl<'a> Renderer<'a> {
         (layout, group)
     }
 
-    fn new_bundle_encoder(&self, target: Option<&RenderTarget>) -> wgpu::RenderBundleEncoder {
+    fn new_bundle_encoder(
+        &'_ self,
+        target: Option<&RenderTarget>,
+    ) -> wgpu::RenderBundleEncoder<'_> {
         let color_format = target.map_or(self.surface_texture_format(), |t| {
             t.color_texture().format()
         });

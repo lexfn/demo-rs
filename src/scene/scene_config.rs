@@ -36,6 +36,7 @@ pub enum MaterialCfg {
 
 #[derive(Deserialize, Debug)]
 pub struct BodyCfg {
+    #[allow(unused)]
     pub shape: ColliderShapeCfg,
     pub movable: Option<bool>,
 }
