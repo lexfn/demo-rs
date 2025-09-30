@@ -3,6 +3,13 @@ name = "demo-rs"
 version = "1.0.0"
 edition = "2024"
 
+[profile.release]
+opt-level = 3
+lto = "fat"
+strip = true
+codegen-units = 1
+panic = "abort"
+
 [dependencies]
 anyhow = "1.0.69"
 bytemuck = { version = "1.23.0", features = ["derive"] }
